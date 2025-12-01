@@ -1,6 +1,8 @@
 library(tidyverse)
 library(dplyr)
 library(rvest)
+library(janitor)
+library(stringr)
 
 
 get_insider_data <- function(){
@@ -25,7 +27,18 @@ colnames(df) <- df[1, ]
 df <- df[-1, ] 
 
 df <- df %>% 
-  rename(Num_Shares = "#Shares")
+  clean_names() %>% 
+  rename(total_value = value,
+         datetime = sec_form_4) %>% 
+  mutate( mutate(
+    date_part = word(datetime, 1, 2),  # "Dec 01"
+    time_part = word(datetime, 3, -1), # "02:00 PM"
+    
+    date_full = paste(date_part, "2025"),
+    
+    # convert to Date
+    date_full = as.Date(date_full, format = "%b %d %Y"))
+  
 
 return(df)
 
