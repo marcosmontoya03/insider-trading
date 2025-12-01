@@ -5,9 +5,17 @@ library(janitor)
 library(stringr)
 
 
-get_insider_data <- function(){
+get_insider_trading <- function(type){
+  
+  tc_value <- if(type == "buy") {
+    "1"
+  } else if(type == "sale") {
+    "2" 
+  } else {
+    stop("Invalid type. Type buy or sale")
+  }
 
-link <- "https://finviz.com/insidertrading.ashx?tc=7"
+  link <- paste0("https://finviz.com/insidertrading.ashx?tc=", tc_value)
 
 page <- read_html(link)
 
@@ -42,8 +50,33 @@ return(df)
 
 }
 
-dec_1 <- get_insider_data()
 
-write.csv(dec_1, "dec_1_insider_trading.csv")
+# DECEMBER 1 
 
+dec_1_sales <- get_insider_trading("sale")
+
+dec_1_buys <- get_insider_trading("buy")
+
+dec_1_buys <- dec_1_buys %>% 
+  filter(date == "2025-12-01")
+
+dec_1_trading <- rbind(dec_1_sales, dec_1_buys)
+
+
+write.csv(dec_1_trading, "dec_1_insider_trading.csv")
+
+
+# DECEMBER 1 
+
+dec_2_sales <- get_insider_trading("sale")
+
+dec2_buys <- get_insider_trading("buy")
+
+dec_2_buys <- dec_1_buys %>% 
+  filter(date == "2025-12-01")
+
+dec_2_trading <- rbind(dec_1_sales, dec_1_buys)
+
+
+write.csv(dec_1_trading, "dec_2_insider_trading.csv")
 
