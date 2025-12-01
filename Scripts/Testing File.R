@@ -32,3 +32,4 @@ return(df)
 }
 
 dec_1 <- get_insider_data()
+
