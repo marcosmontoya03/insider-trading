@@ -29,15 +29,13 @@ df <- df[-1, ]
 df <- df %>% 
   clean_names() %>% 
   rename(total_value = value,
-         datetime = sec_form_4) %>% 
-  mutate( mutate(
-    date_part = word(datetime, 1, 2),  # "Dec 01"
-    time_part = word(datetime, 3, -1), # "02:00 PM"
-    
-    date_full = paste(date_part, "2025"),
-    
-    # convert to Date
-    date_full = as.Date(date_full, format = "%b %d %Y"))
+         datetime = sec_form_4,
+         cost_share = cost) %>% 
+  mutate(date_part = word(datetime, 1, 2),
+         date_full = paste(date_part, "2025"),
+         date = as.Date(date_full, format = "%b %d %Y"),
+         time = word(datetime, 3, -1)) %>% 
+  select(-date_part, -date_full, -datetime)
   
 
 return(df)
@@ -45,4 +43,7 @@ return(df)
 }
 
 dec_1 <- get_insider_data()
+
+write.csv(dec_1, "dec_1_insider_trading.csv")
+
 
