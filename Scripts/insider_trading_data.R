@@ -3,7 +3,6 @@ library(dplyr)
 library(rvest)
 
 
-# notes: filter cases before 9:30 am (MAYBE) and after 4:30pm 
 get_insider_data <- function(){
 
 link <- "https://finviz.com/insidertrading.ashx?tc=7"
@@ -33,9 +32,4 @@ return(df)
 }
 
 dec_1 <- get_insider_data()
-dec_2 <- get_insider_data()
-dec_3 <- get_insider_data()
-dec_4 <- get_insider_data()
-dec_5 <- get_insider_data()
-
 
