@@ -1,9 +1,20 @@
+########## INSIDER TRADING DATA SCRAPPING FOR DEC 1 - DEC 5 ###################
+
 library(tidyverse)
 library(dplyr)
 library(rvest)
 library(janitor)
 library(stringr)
 
+############################## SCRAPING FUNCTION ##############################
+
+#' Insider Trading Data Scraper Function 
+#' 
+#' @description This function accesses FinViz's insider trading online data and 
+#' creates a data base of all buy/sale reports published on the day of usage 
+#' 
+#' @return data frame with insider trading information (ticker, type of transaction,
+#' cost of share, total shares bought, total value of purchase, date, and time)
 
 get_insider_trading <- function(){
   
@@ -59,8 +70,8 @@ get_insider_trading <- function(){
 
   
 # DECEMBER 1 
-dec_1 <- get_insider_trading()
-write.csv(dec_1, "dec_1_insider_trading.csv")
+# dec_1 <- get_insider_trading()
+# write.csv(dec_1, "dec_1_insider_trading.csv")
 
 
 # DECEMBER 2
