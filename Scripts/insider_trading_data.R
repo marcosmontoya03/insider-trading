@@ -67,7 +67,7 @@ get_insider_trading <- function(){
   
 }
 
-
+################# Scraping at 4:30 pm each day ################################
   
 # DECEMBER 1 
 # dec_1 <- get_insider_trading()
