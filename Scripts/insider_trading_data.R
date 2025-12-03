@@ -6,6 +6,7 @@ library(rvest)
 library(janitor)
 library(stringr)
 library(lubridate)
+library(readr)
 
 ############################## SCRAPING FUNCTION ##############################
 
@@ -90,4 +91,13 @@ write.csv(dec_4, "dec_4_insider_trading.csv", row.names = F)
 # DECEMBER 5
 dec_5 <- get_insider_trading()
 write.csv(dec_5, "dec_5_insider_trading.csv", row.names = F)
+
+
+############################## BINDING DATA ##############################
+
+
+all_raw_data <- list.files(path = "/Users/marco/Documents/GitHub/insider-trading/data/insider_data",
+                           pattern = ".csv", full.names = T) %>% 
+  lapply(read_csv) %>% 
+  bind_rows()
 

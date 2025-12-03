@@ -4,59 +4,7 @@ library(jsonlite)
 library(dplyr)
 library(tidyverse)
 
-
-### test ###
-
-df <- dec_3 %>%
-  mutate(across(c(cost_share, number_shares, total_value), 
-                ~as.numeric(as.character(gsub(",", "", .))))) %>% 
-  group_by(ticker, date) %>% 
-  mutate(total_events_in_day = n(),
-         n_transactions = n_distinct(transaction)) %>% 
-  
-  # Get rid of trades with different transactions for same company
-  filter(n_transactions == 1) %>%
-  select(-n_transactions) %>% 
-  ungroup() %>% 
-  group_by(ticker, datetime) %>% 
-  mutate(tot_event_same_time = n()) %>% 
-  ungroup()
-
-same <- df %>% 
-  filter(total_events_in_day == tot_event_same_time) %>% 
-  group_by(ticker, datetime) %>% 
-  summarize(transaction = first(transaction),
-            cost_share = sum(cost_share, na.rm = TRUE),
-            number_shares = sum(number_shares, na.rm = TRUE),
-            total_value = sum(total_value, na.rm = TRUE),
-            date = first(date), 
-            time = first(time)) %>% 
-  select(ticker, transaction, cost_share, number_shares, total_value, 
-         datetime, date, time) %>% 
-  ungroup()
-
-different <- df %>%
-  filter(total_events_in_day != tot_event_same_time) %>% 
-  group_by(ticker, date) %>% 
-  arrange(ticker, time) %>% 
-  mutate(diff_prev = time - first(time),
-         within_threshold = ifelse(diff_prev <= threshold, 1, 0)) %>%
-  filter(within_threshold == 1) %>% 
-  summarize(transaction = first(transaction),
-            cost_share = sum(cost_share, na.rm = TRUE),
-            number_shares = sum(number_shares, na.rm = TRUE),
-            total_value = sum(total_value, na.rm = TRUE),
-            date = first(date), 
-            time = first(time),
-            datetime = first(datetime)) %>% 
-  select(ticker, transaction, cost_share, number_shares, total_value, 
-         datetime, date, time) %>% 
-  ungroup()
-
-
-test <- rbind(same, different)
-  
-# GETTING MINUT BY MINUTE DATA 
+############## CLEANING FUNCTION #############
 
 clean_insider_data <- function(df){
   
@@ -131,21 +79,7 @@ clean_insider_data <- function(df){
 }
 
 
-df <- clean_insider_data(dec_3)
+df <- clean_insider_data(all_raw_data)
 
 
 
-
-#' Function to append the scraped data together
-#'  
-append_scraped_data <- function(){
-  
-  df_base = "data/dec_1_insider_trading.csv"
-  # Code to get the number of scraped files in the data folder
-  num_files <- 
-    
-    for(i in 2:num_files){
-      r_bind
-      
-    }
-}
