@@ -52,7 +52,7 @@ get_insider_trading <- function(){
              date_full = paste(date_part, "2025"),
              date = as.Date(date_full, format = "%b %d %Y"),
              time = word(datetime, 3, -1)) %>% 
-      select(-date_part, -date_full, -datetime) %>% 
+      select(-date_part, -date_full) %>% 
       filter(date == Sys.Date())
     
     results_list[[counter]] <- df
@@ -72,7 +72,6 @@ get_insider_trading <- function(){
 # DECEMBER 1 
 # dec_1 <- get_insider_trading()
 # write.csv(dec_1, "dec_1_insider_trading.csv")
-
 
 # DECEMBER 2
 # dec_2 <- get_insider_trading()
