@@ -3,29 +3,54 @@ library(httr2)
 library(jsonlite)
 library(dplyr)
 library(tidyverse)
-library(lubridate)
 
 
 ### test ###
 
-stocks <- read.csv("/Users/marco/Documents/GitHub/insider-trading/data/dec_1_insider_trading.csv", 
-                   row.names = 1) %>%
-  group_by(ticker, time) %>% 
-  summarise(total = n())
-
-
-test <- dec_3 %>% 
-  mutate(time = parse_time(time)) %>% 
-  filter(time > hm("09:30"), time < hm("16:30")) %>% 
+df <- dec_3 %>%
+  mutate(across(c(cost_share, number_shares, total_value), 
+                ~as.numeric(as.character(gsub(",", "", .))))) %>% 
   group_by(ticker, date) %>% 
-  mutate(total_events_in_day = n()) %>% 
+  mutate(total_events_in_day = n(),
+         n_transactions = n_distinct(transaction)) %>% 
+  
+  # Get rid of trades with different transactions for same company
+  filter(n_transactions == 1) %>%
+  select(-n_transactions) %>% 
   ungroup() %>% 
   group_by(ticker, datetime) %>% 
-  mutate(tot_event_same_time = n())
+  mutate(tot_event_same_time = n()) %>% 
+  ungroup()
 
+same <- df %>% 
+  filter(total_events_in_day == tot_event_same_time) %>% 
+  group_by(ticker, datetime) %>% 
+  summarize(cost_share = sum(cost_share, na.rm = TRUE),
+            number_shares = sum(number_shares, na.rm = TRUE),
+            total_value = sum(total_value, na.rm = TRUE),
+            date = first(date), 
+            time = first(time)) %>% 
+  ungroup()
+
+different <- df %>%
+  filter(total_events_in_day != tot_event_same_time) %>% 
+  group_by(ticker, date) %>% 
+  arrange(ticker, time) %>% 
+  mutate(diff_prev = time - first(time),
+         within_threshold = ifelse(diff_prev <= threshold, 1, 0)) %>%
+  filter(within_threshold == 1) %>% 
+  summarize(cost_share = sum(cost_share, na.rm = TRUE),
+            number_shares = sum(number_shares, na.rm = TRUE),
+            total_value = sum(total_value, na.rm = TRUE),
+            date = first(date), 
+            time = first(time)) %>% 
+  ungroup()
+
+
+test <- rbind(same, different) %>% 
+  select(-c(total_events_in_day, tot_event_same_time)) %>% 
+  distinct(ticker, datetime, .keep_all = T)
   
-
-
 # GETTING MINUT BY MINUTE DATA 
 
 clean_insider_data <- function(df){
@@ -41,34 +66,61 @@ clean_insider_data <- function(df){
   # Wrap text at 80 characters per line and print
   cat(paste(strwrap(text, width = 80), collapse = "\n"))
   
-  threshold <- as.numeric(readline(prompt = "What is your desired threshold?"))
+  threshold <- (as.numeric(readline(prompt = "Enter the time threshold in minutes: "))*60) 
   
-  
+  # Initial Cleaning
   df <- df %>%
-    mutate(time = parse_time(time)) %>% 
-    filter(time > hm("09:30"), time < hm("16:30")) %>% 
+    mutate(across(c(cost_share, number_shares, total_value), 
+                  ~as.numeric(as.character(gsub(",", "", .))))) %>% 
     group_by(ticker, date) %>% 
-    mutate(total_events_in_day = n()) %>% 
+    mutate(total_events_in_day = n(),
+           n_transactions = n_distinct(transaction)) %>% 
+    
+    # Get rid of trades with different transactions for same company
+    filter(n_transactions == 1) %>%
+    select(-n_transactions) %>% 
     ungroup() %>% 
     group_by(ticker, datetime) %>% 
-    mutate(tot_event_same_time = n())
-    
-  # if(total in a day is same as total in datetime){
-  #   dont do anytign 
-  # }
-  # 
-  # else {
-  #   
-  #   if (they are close to each toher )
-  #     
-  #     user gets to pick if they wnat to collapse (based on threshold)
-  # }
+    mutate(tot_event_same_time = n()) %>% 
+    ungroup()
+  
+  # Case 1: total_events_in_day == tot_event_same_time
+  same <- df %>% 
+    filter(total_events_in_day == tot_event_same_time) %>% 
+    group_by(ticker, datetime) %>% 
+    summarize(cost_share = sum(cost_share, na.rm = TRUE),
+              number_shares = sum(number_shares, na.rm = TRUE),
+              total_value = sum(total_value, na.rm = TRUE),
+              date = first(date), 
+              time = first(time)) %>% 
+    ungroup()
+  
+  # Case 2: Events close 
+  different <- df %>%
+    filter(total_events_in_day != tot_event_same_time) %>% 
+    group_by(ticker, date) %>% 
+    arrange(ticker, time) %>% 
+    mutate(diff_prev = time - first(time),
+           within_threshold = ifelse(diff_prev <= threshold, 1, 0)) %>%
+    filter(within_threshold == 1) %>% 
+    summarize(cost_share = sum(cost_share, na.rm = TRUE),
+              number_shares = sum(number_shares, na.rm = TRUE),
+              total_value = sum(total_value, na.rm = TRUE),
+              date = first(date), 
+              time = first(time)) %>% 
+    ungroup()
+  
+  # Bind all 
+  df <- rbind(same, close) %>% 
+    select(-c(total_events_in_day, tot_event_same_time)) %>% 
+    distinct(ticker, datetime, .keep_all = T)
+  
   
   return(df)
 }
 
 
-clean_insider_data(dec_3)
+df <- clean_insider_data(dec_3)
 
 
 

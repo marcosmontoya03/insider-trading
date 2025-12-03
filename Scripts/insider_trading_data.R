@@ -80,8 +80,8 @@ get_insider_trading <- function(){
 # write.csv(dec_2, "dec_2_insider_trading.csv")
   
 # DECEMBER 3
-dec_3 <- get_insider_trading()
-write.csv(dec_3, "dec_3_insider_trading.csv", row.names = F)
+# dec_3 <- get_insider_trading()
+# write.csv(dec_3, "dec_3_insider_trading.csv", row.names = F)
 
 # DECEMBER 4
 dec_4 <- get_insider_trading()
