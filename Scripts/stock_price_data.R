@@ -79,7 +79,19 @@ clean_insider_data <- function(df){
 }
 
 
-df <- clean_insider_data(all_raw_data)
+# df <- clean_insider_data(all_raw_data)
 
+############## GETTING STOCK DATA FUNCTION #############
+
+stock_data <- function(cleaned_df, api_key){
+  
+  df <- cleaned_df %>% 
+    select(ticker, datetime) 
+  
+  
+  
+}
+
+test <- stock_data(df)
 
 
