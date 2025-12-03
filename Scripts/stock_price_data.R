@@ -30,7 +30,18 @@ test <- dec_3 %>%
 
 clean_insider_data <- function(df){
   
-  threholds <- readline(prompt = " what threshold do you want? edplain what theshold is, and why it matters ")
+  text <- "Some companies have multiple insider trading reports, and you’ll need to
+  decide how to handle them. Sometimes these reports are released at the exact
+  same time and have a single, combined effect on the stock price. Other times,
+  several reports come out close together—sometimes just 1–2 minutes apart—making
+  it difficult to separate the impact of each one. We need you to choose the
+  time-gap (in minutes) that will serve as the threshold for treating reports as
+  part of the same event."
+  
+  # Wrap text at 80 characters per line and print
+  cat(paste(strwrap(text, width = 80), collapse = "\n"))
+  
+  threshold <- as.numeric(readline(prompt = "What is your desired threshold?"))
   
   
   df <- df %>%
@@ -53,9 +64,11 @@ clean_insider_data <- function(df){
   #     user gets to pick if they wnat to collapse (based on threshold)
   # }
   
+  return(df)
 }
 
 
+clean_insider_data(dec_3)
 
 
 

@@ -5,6 +5,7 @@ library(dplyr)
 library(rvest)
 library(janitor)
 library(stringr)
+library(lubridate)
 
 ############################## SCRAPING FUNCTION ##############################
 
@@ -51,9 +52,10 @@ get_insider_trading <- function(){
       mutate(date_part = word(datetime, 1, 2),
              date_full = paste(date_part, "2025"),
              date = as.Date(date_full, format = "%b %d %Y"),
-             time = word(datetime, 3, -1)) %>% 
+             time = parse_time(word(datetime, 3, -1))) %>% 
       select(-date_part, -date_full) %>% 
-      filter(date == Sys.Date())
+      filter(date == Sys.Date(),
+             time >= hm("09:30"), time <= hm("16:30"))
     
     results_list[[counter]] <- df
     
@@ -76,7 +78,7 @@ get_insider_trading <- function(){
 # DECEMBER 2
 # dec_2 <- get_insider_trading()
 # write.csv(dec_2, "dec_2_insider_trading.csv")
-
+  
 # DECEMBER 3
 dec_3 <- get_insider_trading()
 write.csv(dec_3, "dec_3_insider_trading.csv", row.names = F)
