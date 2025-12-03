@@ -41,9 +41,10 @@ user_interaction <- function(){
         break
       } 
       else{
-        
+        print("End date must be after or equal to start date")
       }
       }  
+      
       triple_did(date = )
     }
     triple_did(,selection)
@@ -69,7 +70,32 @@ selection <- function(ticker){
 }
 
 
-triple_did <- function(){
+triple_did <- function(start_date, end_date = NULL, time, ticker = NULL, ){
+  
+  #If ticker is null, then we are looking at the whole dataset
+  if(is.null(ticker)){
+    
+    #If there is an end_date, we want to subset our data
+    if(!is.null(end_date)){
+      df <- df %>% 
+        filter(date >= start_date & date <= end_date)
+      
+      #DiD Package call on our dataset
+      
+    } else{
+      
+      #Did Package call on our dataset
+    }
+  }
+  
+  #If there is a ticker, we want to just look at one ticker at one time
+  else{
+    get_ticker_data(start_date = date, 
+                    time = time, 
+                    ticker = ticker,
+                    threshold)
+  }
+  
   ticker = NULL,
   date = selection[2],
   time = selection[3],
