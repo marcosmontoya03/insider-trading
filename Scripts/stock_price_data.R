@@ -74,12 +74,59 @@ clean_insider_data <- function(df){
   df <- rbind(same, close) %>% 
     distinct(ticker, datetime, .keep_all = T)
   
+  # Getting stock sector
   
-  return(df)
+  tickers <- df %>% 
+    distinct(ticker) %>% 
+    pull(ticker)
+  
+  results_list <- list()
+  
+  for (stock in tickers){
+    
+    link <-  paste0("https://stockanalysis.com/stocks/", stock, "/")
+    
+    page <- tryCatch(read_html(link), error = function(e) NULL)
+    
+    if (is.null(page)) {
+      results_list[[stock]] <- data.frame(text = NA)
+      next
+    }
+    
+    extracted <- page %>% 
+      html_nodes(".col-span-1:nth-child(2) .text-default") %>% 
+      html_text()
+    
+    df_out <- data.frame(text = extracted, stringsAsFactors = FALSE)
+    
+    results_list[[stock]] <- df_out
+  }
+  
+  stock_sector <- bind_rows(
+    lapply(names(results_list), function(tick) {
+      
+      df <- results_list[[tick]]
+      
+      if (nrow(df) == 0) {
+        df <- data.frame(text = NA, stringsAsFactors = FALSE)
+      }
+      
+      df$ticker <- tick
+      
+      df
+    })) %>% 
+    rename(sector = text)
+  
+  # merging data 
+  
+  all_data <- left_join(df, stock_sector, by = "ticker")
+  
+  
+  return(all_data)
 }
 
 
-# df <- clean_insider_data(all_raw_data)
+df <- clean_insider_data(all_raw_data)
 
 ############## GETTING STOCK DATA FUNCTION #############
 
@@ -93,5 +140,11 @@ stock_data <- function(cleaned_df, api_key){
 }
 
 test <- stock_data(df)
+
+
+########### test. ##########
+
+
+
 
 
