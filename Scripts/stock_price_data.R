@@ -89,19 +89,12 @@ get_stock_sector_parallel <- function(df_final){
   tickers <- df_final %>% 
     select(ticker) %>% 
     distinct() %>% 
-    pull
-  
-  
-  
-  
-  
-  
+    pull %>% 
+    sample(1)
   
 }
   
-
-
-test <- get_stock_sector(df)
+  
 
 # merging data 
 
