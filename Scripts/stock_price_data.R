@@ -60,7 +60,7 @@ clean_insider_data <- function(df){
            within_threshold = ifelse(diff_prev <= threshold, 1, 0)) %>%
     filter(within_threshold == 1) %>% 
     summarize(transaction = first(transaction),
-              cost_share = sum(cost_share, na.rm = TRUE),
+              cost_share = mean(cost_share, na.rm = TRUE),
               number_shares = sum(number_shares, na.rm = TRUE),
               total_value = sum(total_value, na.rm = TRUE),
               date = first(date), 
