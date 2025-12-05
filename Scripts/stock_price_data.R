@@ -86,10 +86,10 @@ clean_insider_data <- function(df){
 
 ############## GETTING STOCK SECTOR FUNCTION #############
 
-get_stock_info <- function(df_final) {
+get_stock_info <- function(df) {
   
   # extract unique tickers
-  tickers <- df_final %>% 
+  tickers <- df %>% 
     select(ticker) %>% 
     distinct() %>% 
     pull()
@@ -140,13 +140,32 @@ get_stock_info <- function(df_final) {
   results_df <- bind_rows(results_list)
   
   # join all info 
-  all_info <- inner_join(df_final, results_df, by = "ticker")
+  all_info <- inner_join(df, results_df, by = "ticker")
   
   return(all_info)
 }
 
 #test <- get_stock_info(df)
 
+############## GETTING ETFs #############
+
+get_etfs <- function(df){
+  
+  
+  industry <- df %>% 
+    select(industry) %>% 
+    distinct() %>% 
+    pull()
+  
+  
+  sector <- df %>% 
+    select(sector) %>% 
+    distinct() %>% 
+    pull()
+  
+  
+  
+}
 
 
 
