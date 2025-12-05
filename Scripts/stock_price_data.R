@@ -1,8 +1,10 @@
 ########## GATHERING STOCK DATA FROM MASSIVE API ###################
-library(httr2)
-library(jsonlite)
 library(dplyr)
 library(tidyverse)
+library(rvest)
+library(purrr)
+library(furrr)
+library(progress)
 
 ############## CLEANING FUNCTION #############
 
@@ -84,19 +86,68 @@ clean_insider_data <- function(df){
 
 ############## GETTING STOCK SECTOR FUNCTION #############
 
-get_stock_sector_parallel <- function(df_final){
+get_stock_info <- function(df_final) {
   
+  # extract unique tickers
   tickers <- df_final %>% 
     select(ticker) %>% 
     distinct() %>% 
-    pull %>% 
-    sample(1)
+    pull()
   
+  # split tickers into batches of 100
+  ticker_batches <- split(tickers, ceiling(seq_along(tickers)/100))
+  
+  results_list <- list()
+  
+  # inner scraping function (with possibly to avoid breaking function)
+  scrape_stock <- possibly(function(stock) {
+    link <- paste0("https://stockanalysis.com/stocks/", tolower(stock), "/")
+    
+    page <- read_html(link)
+    
+    info <- page %>% 
+      html_nodes(".col-span-1:nth-child(1) .text-default , .col-span-1:nth-child(2) .text-default") %>% 
+      html_text()
+    
+    if(length(info) < 2) info <- c(NA, NA)
+    
+    tibble(ticker = stock,
+           sector = info[1],
+           industry = info[2])
+  }, 
+  
+  otherwise = tibble(ticker = NA, sector = NA, industry = NA))
+  
+  # loop over batches
+  batch_counter <- 1
+  
+  for(batch in ticker_batches){
+    
+    message("Processing batch ", batch_counter, " of ", length(ticker_batches),
+            " (", length(batch), " tickers)")
+    
+    batch_results <- map_dfr(batch, 
+                             ~{scrape_stock(.x)})
+    
+    results_list <- append(results_list, list(batch_results))
+    
+    Sys.sleep(3)
+    
+    batch_counter <- batch_counter + 1
+  }
+  
+  # bind all batches into a single df
+  results_df <- bind_rows(results_list)
+  
+  # join all info 
+  all_info <- inner_join(df_final, results_df, by = "ticker")
+  
+  return(all_info)
 }
-  
-  
 
-# merging data 
+#test <- get_stock_info(df)
+
+
 
 
 

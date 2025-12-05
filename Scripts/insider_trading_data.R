@@ -20,10 +20,12 @@ library(readr)
 
 get_insider_trading <- function(){
   
-  results_list <- list()   # store each df here
+  # Store DF here 
+  results_list <- list() 
   
   counter <- 1
   
+  # Scrape for both buy and sell reports 
   for(tc_value in 1:2){
     
     link <- paste0("https://finviz.com/insidertrading.ashx?tc=", tc_value)
@@ -37,6 +39,7 @@ get_insider_trading <- function(){
       html_text() %>% 
       as.data.frame()
     
+    # reformats df 
     df <- df[-seq(13, nrow(df), by = 7), ] %>% 
       as.data.frame() %>% 
       rename(x = ".")
@@ -45,6 +48,7 @@ get_insider_trading <- function(){
     colnames(df) <- df[1, ]
     df <- df[-1, ] 
 
+    # cleaning step for later use 
     df <- df %>% 
       clean_names() %>% 
       rename(total_value = value,
@@ -64,6 +68,7 @@ get_insider_trading <- function(){
     
     } 
   
+  # bind both buy and sell clean reports 
   final_df <- bind_rows(results_list)
   
   return(final_df)
