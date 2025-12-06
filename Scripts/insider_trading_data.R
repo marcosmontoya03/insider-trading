@@ -94,8 +94,8 @@ get_insider_trading <- function(){
 # write.csv(dec_4, "dec_4_insider_trading.csv", row.names = F)
 
 # DECEMBER 5
-dec_5 <- get_insider_trading()
-write.csv(dec_5, "dec_5_insider_trading.csv", row.names = F)
+# dec_5 <- get_insider_trading()
+# write.csv(dec_5, "dec_5_insider_trading.csv", row.names = F)
 
 
 ############################## BINDING DATA ##############################
@@ -106,3 +106,5 @@ all_raw_data <- list.files(path = "/Users/marco/Documents/GitHub/insider-trading
   lapply(read_csv) %>% 
   bind_rows()
 
+
+write.csv(all_raw_data, "insider_trading_dec_1-5.csv", row.names = F)
