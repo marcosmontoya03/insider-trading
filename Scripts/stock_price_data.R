@@ -18,7 +18,7 @@ clean_insider_data <- function(df){
   time-gap (in minutes) that will serve as the threshold for treating reports as
   part of the same event."
   
-  # Wrap text at 80 characters per line and print
+  # make text look better 
   cat(paste(strwrap(text, width = 80), collapse = "\n"))
   
   threshold <- (as.numeric(readline(prompt = "Enter the time threshold in minutes: "))*60) 
@@ -80,8 +80,9 @@ clean_insider_data <- function(df){
 }
 
 
-# df <- clean_insider_data(all_raw_data)
+df <- clean_insider_data(all_raw_data)
 
+test <- clean_insider_data(all_raw_data)
 
 
 ############## GETTING STOCK SECTOR FUNCTION #############
@@ -145,7 +146,33 @@ get_stock_info <- function(df) {
   return(all_info)
 }
 
-#test <- get_stock_info(df)
+df <- get_stock_info(df)
+
+############## SELECT YOUR FUN #############
+
+select_your_analysis <- function(df){
+  
+  text <- "We are limited to analyzing insider trading on one stock at a time.
+  As such, you will select which Sector and Industry you want to explore. After,
+  you will selected one specific stock to conduct the final analysis."
+  
+  cat(paste(strwrap(text, width = 80), collapse = "\n"))
+  
+  
+  readline(prompt = "Type Next")
+  
+  text <- "First, let's select a broad industry. Choose from the option below."
+  
+  industry <- df %>% 
+    select(industry) %>% 
+    distinct() %>% 
+    pull()
+  
+  return(industry)
+}
+
+
+
 
 ############## GETTING ETFs #############
 
