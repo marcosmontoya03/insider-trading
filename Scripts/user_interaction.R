@@ -5,9 +5,6 @@
 source("stock_price_data.R")
 
 
-
-
-
 #' Function to ask user to pick the event they want vs whole data to do a DiD of
 #'  
 #'
@@ -69,8 +66,63 @@ selection <- function(ticker){
   return(selection)
 }
 
+#' Data Formating
+#' 
+#' Will make the data into minute by minute data, where each row contains the
+#' target stock price, the industry price, and the sector price
+#' 
+#' @param 
+data_fromatting <- function()
 
-triple_did <- function(start_date, end_date = NULL, time, ticker = NULL, ){
+
+
+
+#' Triple DiD
+#' 
+#' A function to see if insider trading caused a change in the stock price,
+#' adjusting for market and industry trends
+#' 
+#' @param df_clean Properly formated data from the data_formatting function
+#' @param trade_event The time of the trading event
+#' @param threshhold The time range you want to look for your pre and post period
+#' @param trade_type If the transation was a "Buy", "Sale", "Proposed Sale"
+#' 
+#' @return A summary table to the output
+#' 
+new_triple_did <- function(df_clean, trade_event, threshold, trade_type){
+  reg <- lm()
+}
+
+
+new_single_did <- function(df_clean, trade_event, threshold, trade_type{
+  
+  #Remove data before and after threshold
+  
+  
+  reg <- 
+})
+
+#' Will run 
+loop_dif_thresholds
+
+plot_one_did
+
+loop_through_dif
+
+#'Graphing DiD
+#'
+
+#'Time to Market Responce
+#'
+#'Estimates how quickly the market responds to an insider trading report being
+#'released
+#'
+#'@param trade_event The time of the trading event
+
+
+
+
+old_triple_did <- function(start_date, end_date = NULL, time, ticker = NULL, ){
   
   #If ticker is null, then we are looking at the whole dataset
   if(is.null(ticker)){
