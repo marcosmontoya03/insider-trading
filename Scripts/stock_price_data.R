@@ -82,9 +82,6 @@ clean_insider_data <- function(df){
 
 df <- clean_insider_data(all_raw_data)
 
-test <- clean_insider_data(all_raw_data)
-
-
 ############## GETTING STOCK SECTOR FUNCTION #############
 
 get_stock_info <- function(df) {
@@ -150,7 +147,85 @@ df <- get_stock_info(df)
 
 ############## SELECT YOUR FUN #############
 
+
 select_your_analysis <- function(df){
+  
+  # transaction choice 
+  transactions <- unique(df$transaction)
+  
+  quoted_transactions <- paste0("'", transactions, "'", collapse = ", ")
+  
+  text <- paste0("Given data constraints, you can only analyze one stock at a time. ",
+    "To help you narrow down your choice, please select what type of insider ",
+    "transaction (", quoted_transactions, ")  you are interested in.")
+  
+  cat(paste(strwrap(text, width = 80), collapse = "\n"))
+  
+  valid_transactions <- c("Buy", "Sale", "Proposed Sale")
+  
+  user_transaction <- readline(prompt = "Your Selection: ")
+  
+  while (!user_transaction %in% valid_transactions) {
+    cat("Please choose one of: ", paste(valid_transactions, collapse = ", "), "\n")
+    user_transaction <- readline(prompt = "Your Selection: ")
+  }
+  
+  
+  # metric choice 
+  text <- "Now, do you want to select your stock based on the market price ('cost_share'),
+  the number of shares traded ('number_shares') or the total value of the insider
+  trading report ('total_value')?"
+  
+  cat(paste(strwrap(text, width = 80), collapse = "\n"))
+  
+  valid_metrics <- c("cost_share", "number_shares", "total_value")
+  
+  user_metric <- readline(prompt = "Your Selection: ")
+  
+  while (!user_metric %in% valid_metrics) {
+    cat("Please choose one of: ", paste(valid_metrics, collapse = ", "), "\n")
+    user_metric <- readline(prompt = "Your Selection: ")
+  }
+
+  
+  
+  # top or bottom choice
+  text <- "To help you decide, we can provide the 6 stocks with the highest or
+  lowest value based on your metric. Do you want to see the top values ('top')
+  or the lowest values ('bottom')?"
+  
+  cat(paste(strwrap(text, width = 80), collapse = "\n"))
+  
+  user_head <- readline(prompt = "Your Selection: ")
+  
+  
+  
+  
+  
+  df <- df %>% 
+    filter(transaction == user_transaction) %>% 
+    select(ticker, transaction, all_of(user_metric), datetime,
+           date, time) %>% 
+    slice_head() # TBD but decieds top of bottom 
+  
+  return(df)
+  
+}
+
+select_your_analysis <- function(df){
+  
+  
+  
+  steps 
+  -what tyep of transaction (buy, sell, proposed)
+  - by what metric do you want to select your stock (cost, total shares, total value)
+  -once selected, we displya top stocks and ask you to pick the final stock 
+  -for final stock, we will scrape indsutry and sector 
+  -we will ask you to pick the ETFs 
+  -great, now save your data set 
+  
+  -last functoin that marcost has to write: minnute by minute 
+  -sign up for your token here 
   
   text <- "We are limited to analyzing insider trading on one stock at a time.
   As such, you will select which Sector and Industry you want to explore. After,
@@ -159,7 +234,7 @@ select_your_analysis <- function(df){
   cat(paste(strwrap(text, width = 80), collapse = "\n"))
   
   
-  readline(prompt = "Type Next")
+  readline(prompt = "Type Next: ")
   
   text <- "First, let's select a broad industry. Choose from the option below."
   
@@ -169,8 +244,8 @@ select_your_analysis <- function(df){
     pull()
   
   return(industry)
-}
 
+  }
 
 
 
