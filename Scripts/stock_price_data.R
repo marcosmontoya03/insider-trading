@@ -5,6 +5,7 @@ library(rvest)
 library(purrr)
 library(furrr)
 library(progress)
+library(eodhdR2)
 
 ############## CLEANING FUNCTION #############
 
