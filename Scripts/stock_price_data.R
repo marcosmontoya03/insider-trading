@@ -225,15 +225,18 @@ select_your_analysis <- function(df, num_stocks = 5){
     n <- n + step
   }
   
-  # extract trop stocks 
+  # extract top stocks 
   final_tickers <- valid_tickers[1:num_stocks]
 
   df_final <- df_info %>% 
-    filter(ticker %in% final_tickers)
+    filter(ticker %in% final_tickers) %>% 
+    mutate(date = as.Date(date))
   
-  print(df_final)
   
-  # top or bottom choice
+  print(df_final %>% 
+          select(ticker, all_of(user_metric), date, sector, industry))
+  
+  # final choice!!!!
   text <- paste0("Here are the ", num_stocks,  " stocks with the highest values for your metric, along 
   with their corresponding sector and industry. Which stock do you want to analyze?")
   
@@ -245,19 +248,42 @@ select_your_analysis <- function(df, num_stocks = 5){
     cat("Please choose one of: ", paste(final_tickers, collapse = ", "), "\n")
     user_ticker <- readline(prompt = "Type the selected ticker: ")
   }
-  
-  
-  df_final <- df_final %>% 
+ 
+  ticker_rows <- df_final %>% 
     filter(ticker == user_ticker)
   
-
+  # if multiple rows exist for a ticker, let user choose by date
+  if (nrow(ticker_rows) > 1) {
+    cat("This ticker has multiple entries. Please choose a date from the following:\n")
+    print(ticker_rows %>% 
+            select(date) %>% 
+            distinct())
+    
+    repeat {
+      user_input <- readline(prompt = "Type the date you want to analyze (YYYY-MM-DD): ")
+      user_date <- as.Date(user_input)
+      
+      # check if valid
+      if (!is.na(user_date) && user_date %in% ticker_rows$date) {
+        break
+      } else {
+        cat("Invalid date. Please choose one of: ", paste(ticker_rows$date, collapse = ", "), "\n")
+      }
+    }
+    
+    # final filter
+    ticker_rows <- ticker_rows %>% 
+      filter(date == user_date)
+  }
   
-  return(df_final)
+  
+  
+  return(ticker_rows)
   
 }
 
 
-test_run <- select_your_analysis(df)
+final_user_selection <- select_your_analysis(df)
 
 
 select_your_analysis <- function(df){
