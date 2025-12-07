@@ -93,11 +93,48 @@ data_fromatting <- function()
 #' 
 #' @return A summary table to the output
 #' 
-new_triple_did <- function(df_clean, trade_event, threshold, trade_type){
-  reg <- lm()
+new_triple_did <- function(df, 
+                           trade_event, 
+                           threshold, 
+                           trade_type,
+                           target_ticker,
+                           target_sector,
+                           outcome_var = "avg_price_high_low"){
+  
+  #Remove data before and after threshold
+  df <- df %>%
+    mutate(date = ymd_hms(date)) %>% 
+    filter(date > ymd_hms(trade_event) - minutes(threshold) &
+             date < ymd_hms(trade_event) + minutes(threshold)
+    )
+  
+  #Create treated and post indicators
+  df <- df %>%
+    mutate(post = ifelse(date >= ymd_hms(trade_event),1,0),
+           treated = ifelse(ticker == target_ticker,1,0),
+           subgroup = ifelse(ticker == target_sector,1,0)
+    )
+  
+  #Picking the outcome of interest
+  df <- df %>% 
+    mutate(outcome = case_when(outcome_var == "avg_price_high_low" ~ ((high + low)/2),
+                               outcome_var == "avg_price_open_close" ~((open + close)/2),
+                               outcome_var == "volume" ~ (volume),
+                               outcome_var == "value" ~ (volume * ((open + close)/2)))
+    ) %>% 
+    select(ticker, date, outcome, post, treated, subgroup)
+  
+  #Running the regression
+  reg <- lm(outcome ~ post + treated + 
+              subgroup + post:treated + 
+              post:subgroup + treated:subgroup +
+              post:treated:subgroup, data = df)
+  sum_reg <-  summary(reg)
+  return(sum_reg)
 }
 
-
+#' A proof of concept on a regular DiD that will be used as the skeleton for the 
+#' triple DiD
 new_single_did <- function(df, 
                            trade_event, 
                            threshold, 
@@ -129,23 +166,48 @@ new_single_did <- function(df,
   
   #Running the regression
   reg <- lm(outcome ~ post + treated + post:treated, data = df)
-  summary(reg)
-  return(reg)
+  sum_reg <-  summary(reg)
+  return(sum_reg)
 }
   
 ################ Running Code ##################
 df_clean <-  testing_data
+mod_etf <- testing_data %>% 
+  mutate(ticker = "ETF",
+         high = high + rnorm(n(),mean = 15, sd = 30),
+        low = low + rnorm(n(),mean = 15, sd = 30),
+        open = open + rnorm(n(),mean = 15, sd = 30),
+        close = close + rnorm(n(),mean = 15, sd = 30),
+        volume = volume + rnorm(n(),mean = 15, sd = 30))
+
+mod_ind <- testing_data %>% 
+  mutate(ticker = "IND",
+         high = high + rnorm(n(),mean = 0, sd = 15),
+         low = low + rnorm(n(),mean = 0, sd = 15),
+         open = open + rnorm(n(),mean = 0, sd = 15),
+         close = close + rnorm(n(),mean = 0, sd = 15),
+         volume = volume + rnorm(n(),mean = 0, sd = 15)) 
+df_clean_3 <- rbind(df_clean,mod_etf,mod_ind)
 
 test <- new_single_did(df_clean, "2025-12-4 15:00:00",
                           5,
                           "Buy",
                           "AAPL",
                           "avg_price_high_low")
+sum_test <- summary(test)
+interpret(test,"Buy") 
 
-summary(test)
+test_3 <- new_triple_did(df_clean_3,
+                         "2025-12-4 15:00:00",
+                         5,
+                         "Buy",
+                         "AAPL",
+                         "ETF",
+                         "avg_price_high_low")
 
-interpret(test) 
+test_coeff <-  test_3$coefficients
 
+test_3
 
 
 #'Interpret
@@ -154,6 +216,14 @@ interpret(test)
 #'
 #'@param reg_out The regression output
 #'@param trade_type If the transaction was a "Buy", "Sale", "Proposed Sale"
+interpret <- function(sum_reg, trade_type){
+  
+  direction <- ifelse(trade_type == "Buy","increase","decrease")
+  coeff <-  sum_reg$coefficients[,1]
+  pvalues <-  sum_reg$coefficients[,4]
+  print(paste0("The DiD estimator is ", coeff[4], " with a p value of ", pvalues[4],".
+  The trade type was a ",trade_type," so you would anticipate a ", direction,"."))
+}
 
 
 
