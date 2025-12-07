@@ -113,11 +113,11 @@ get_stock_info <- function(df) {
     if(length(info) < 2) info <- c(NA, NA)
     
     tibble(ticker = stock,
-           sector = info[1],
-           industry = info[2])
+           industry = info[1],
+           sector = info[2])
   }, 
   
-  otherwise = tibble(ticker = NA, sector = NA, industry = NA))
+  otherwise = tibble(ticker = NA, industry = NA, sector = NA))
   
   # loop over batches
   batch_counter <- 1
@@ -193,14 +193,12 @@ select_your_analysis <- function(df, num_stocks = 5){
   # filter based on user input
   df_sorted <- df %>% 
     filter(transaction == user_transaction) %>% 
-    select(ticker, transaction, all_of(user_metric), datetime,
-           date, time) %>% 
     arrange(desc(.data[[user_metric]])) 
   
   # getting sector and industry info for the top stocks 
   ordered_tickers <- df_sorted %>% 
     distinct(ticker) %>% 
-    pull(ticker)
+    pull(ticker) 
   
   # while loop to only get top stocks (based on num_stocks, default = 5)
   n <- num_stocks
@@ -227,6 +225,8 @@ select_your_analysis <- function(df, num_stocks = 5){
   
   # extract top stocks 
   final_tickers <- valid_tickers[1:num_stocks]
+  
+  final_tickers <- keep(final_tickers, is_supported_ticker)
 
   df_final <- df_info %>% 
     filter(ticker %in% final_tickers) %>% 
@@ -286,7 +286,7 @@ select_your_analysis <- function(df, num_stocks = 5){
 final_user_selection <- select_your_analysis(df)
 
 
-select_your_analysis <- function(df){
+# select_your_analysis <- function(df){
   
   
   
@@ -325,23 +325,28 @@ select_your_analysis <- function(df){
 
 ############## GETTING ETFs #############
 
-get_etfs <- function(df){
+choose_etfs <- function(final_user_selection){
   
+  df <- final_user_selection
   
-  industry <- df %>% 
-    select(industry) %>% 
-    distinct() %>% 
-    pull()
+  text <- paste0("You selected ", df$ticker, ", which is in the ", df$sector, 
+                 " sector and the ", df$industry, " industry."  )
   
+  cat(strwrap(text, width = 80), collapse = "\n")
   
-  sector <- df %>% 
-    select(sector) %>% 
-    distinct() %>% 
-    pull()
+  readline(prompt = "Type next: ")
   
   
   
+  
+  
+  
+  
+  return(tdb)
 }
+
+
+choose_etfs(final_user_selection)
 
 
 
@@ -379,6 +384,42 @@ test <- riingo_iex_prices("CZFS", resample_frequency = "1min",
 
 write.csv(test, "test_date.csv")
 
+
+
+############ test 
+
+link <- "https://etfdb.com/etfs/industry/"
+
+# 1. Read the main industry‑list page, extract all industry links
+industry_page <- read_html(link)
+
+industry_links <- industry_page %>% 
+  html_nodes("a") %>%         # this finds all <a> tags
+  html_attr("href") %>%       # get their hrefs
+  .[grepl("^/etfs/industry/", .)] %>%  # keep only those linking to industry pages
+  unique() %>% 
+  paste0("https://etfdb.com", .)  # make full URLs
+
+# 2. Loop over industry links, for each scrape the top 3 stocks
+results <- lapply(industry_links, function(url) {
+  page <- read_html(url)
+  
+  # select the first 3 stocks under whatever CSS class is used — e.g. 
+  # if “.realtime-ratings a” is what you identified
+  stocks <- page %>% 
+    html_nodes(".realtime-ratings a") %>% 
+    html_text() %>% 
+    head(3)
+  
+  data.frame(
+    industry_url = url,
+    top_stock = stocks,
+    stringsAsFactors = FALSE
+  )
+})
+
+etfdb_top3 <- bind_rows(results)
+print(etfdb_top3
 
 
 
