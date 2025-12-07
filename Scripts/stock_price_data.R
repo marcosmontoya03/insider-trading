@@ -146,12 +146,12 @@ get_stock_info <- function(df) {
   return(all_info)
 }
 
-df <- get_stock_info(df)
+# df <- get_stock_info(df)
 
 ############## SELECT YOUR FUN #############
 
 
-select_your_analysis <- function(df){
+select_your_analysis <- function(df, num_stocks = 5){
   
   # transaction choice 
   transactions <- unique(df$transaction)
@@ -189,31 +189,76 @@ select_your_analysis <- function(df){
     cat("Please choose one of: ", paste(valid_metrics, collapse = ", "), "\n")
     user_metric <- readline(prompt = "Your Selection: ")
   }
-
   
-  
-  # top or bottom choice
-  text <- "To help you decide, we can provide the 6 stocks with the highest or
-  lowest value based on your metric. Do you want to see the top values ('top')
-  or the lowest values ('bottom')?"
-  
-  cat(paste(strwrap(text, width = 80), collapse = "\n"))
-  
-  user_head <- readline(prompt = "Your Selection: ")
-  
-  
-  
-  
-  
-  df <- df %>% 
+  # filter based on user input
+  df_sorted <- df %>% 
     filter(transaction == user_transaction) %>% 
     select(ticker, transaction, all_of(user_metric), datetime,
            date, time) %>% 
-    slice_head() # TBD but decieds top of bottom 
+    arrange(desc(.data[[user_metric]])) 
   
-  return(df)
+  # getting sector and industry info for the top stocks 
+  ordered_tickers <- df_sorted %>% 
+    distinct(ticker) %>% 
+    pull(ticker)
+  
+  # while loop to only get top stocks (based on num_stocks, default = 5)
+  n <- num_stocks
+  step <- num_stocks
+  valid_tickers <- character(0)
+  
+  while (length(valid_tickers) < num_stocks && n <= length(ordered_tickers)) {
+    
+    current_tickers <- ordered_tickers[1:n]
+    
+    df_top <- df_sorted %>% 
+      filter(ticker %in% current_tickers)
+    
+    df_info <- get_stock_info(df_top)
+    
+    # collect valid tickers (non-NA sector)
+    valid_tickers <- df_info %>% 
+      filter(!is.na(sector)) %>% 
+      distinct(ticker) %>% 
+      pull(ticker)
+    
+    n <- n + step
+  }
+  
+  # extract trop stocks 
+  final_tickers <- valid_tickers[1:num_stocks]
+
+  df_final <- df_info %>% 
+    filter(ticker %in% final_tickers)
+  
+  print(df_final)
+  
+  # top or bottom choice
+  text <- paste0("Here are the ", num_stocks,  " stocks with the highest values for your metric, along 
+  with their corresponding sector and industry. Which stock do you want to analyze?")
+  
+  cat(paste(strwrap(text, width = 80), collapse = "\n"))
+  
+  user_ticker <- readline(prompt = "Type the selected ticker: ")
+  
+  while (!user_ticker %in% final_tickers) {
+    cat("Please choose one of: ", paste(final_tickers, collapse = ", "), "\n")
+    user_ticker <- readline(prompt = "Type the selected ticker: ")
+  }
+  
+  
+  df_final <- df_final %>% 
+    filter(ticker == user_ticker)
+  
+
+  
+  return(df_final)
   
 }
+
+
+test_run <- select_your_analysis(df)
+
 
 select_your_analysis <- function(df){
   
@@ -274,32 +319,32 @@ get_etfs <- function(df){
 
 
 
-
-############## GETTING STOCK DATA FUNCTION #############
-
-stock_data <- function(cleaned_df, api_key){
-  
-  df <- cleaned_df %>% 
-    select(ticker, datetime) 
-  
-  
-  
-}
-
-test <- stock_data(df)
-
-
 ########### test. ##########
 
-usethis::edit_r_environ()
+# # Sign up for API
+# riingo_browse_signup()
+# 
+# # Save your API token as RIINGO_TOKEN = token_here (no ""), and restart R
+# usethis::edit_r_environ()
 
 
 # check if supported 
 is_supported_ticker("CZFS")
 
+
+
 try <- df %>% 
   filter(ticker == "CZFS") %>% 
-  mutate(before = datetime - minutes(30))
+  mutate(before = datetime - minutes(30),
+         after = datetime + minutes(30))
+
+test_2 <- riingo_iex_prices(try$ticker, resample_frequency = "1min") 
+
+test_2$date <- with_tz(test_2$date, "America/New_York")
+
+test_2 <- test_2 %>% 
+  filter(date > try$before, date < try$after)
+  
 
 
 test <- riingo_iex_prices("CZFS", resample_frequency = "1min",
