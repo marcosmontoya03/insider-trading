@@ -5,7 +5,8 @@ library(rvest)
 library(purrr)
 library(furrr)
 library(progress)
-library(eodhdR2)
+library(riingo)
+library(lubridate)
 
 ############## CLEANING FUNCTION #############
 
@@ -27,7 +28,8 @@ clean_insider_data <- function(df){
   # Initial Cleaning
   df <- df %>%
     mutate(across(c(cost_share, number_shares, total_value), 
-                  ~as.numeric(as.character(gsub(",", "", .))))) %>% 
+                  ~as.numeric(as.character(gsub(",", "", .)))),
+           datetime = as.POSIXct(datetime, format = "%b %d %I:%M %p", tz = "America/New_York")) %>% 
     group_by(ticker, date) %>% 
     mutate(total_events_in_day = n(),
            n_transactions = n_distinct(transaction)) %>% 
@@ -289,6 +291,22 @@ test <- stock_data(df)
 
 ########### test. ##########
 
+usethis::edit_r_environ()
+
+
+# check if supported 
+is_supported_ticker("CZFS")
+
+try <- df %>% 
+  filter(ticker == "CZFS") %>% 
+  mutate(before = datetime - minutes(30))
+
+
+test <- riingo_iex_prices("CZFS", resample_frequency = "1min",
+                          start_date = "2025-12-4",
+                          end_date = "2025-12-4")
+
+write.csv(test, "test_date.csv")
 
 
 
