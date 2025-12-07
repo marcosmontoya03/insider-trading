@@ -89,7 +89,7 @@ data_fromatting <- function()
 #' @param df_clean Properly formated data from the data_formatting function
 #' @param trade_event The time of the trading event
 #' @param threshhold The time range you want to look for your pre and post period
-#' @param trade_type If the transation was a "Buy", "Sale", "Proposed Sale"
+#' @param trade_type If the transaction was a "Buy", "Sale", "Proposed Sale"
 #' 
 #' @return A summary table to the output
 #' 
@@ -127,25 +127,35 @@ new_single_did <- function(df,
           ) %>% 
     select(ticker, date, outcome, post, treated)
   
-  
-  
-  # reg <- lm()
+  #Running the regression
+  reg <- lm(outcome ~ post + treated + post:treated, data = df)
+  summary(reg)
+  return(reg)
 }
   
-### testing new_single_did
+################ Running Code ##################
 df_clean <-  testing_data
 
-df_test <- new_single_did(df_clean, "2025-12-4 15:00:00",
+test <- new_single_did(df_clean, "2025-12-4 15:00:00",
                           5,
                           "Buy",
                           "AAPL",
                           "avg_price_high_low")
-  
-df_test <- df_test %>%
-  filter(date < (ymd_hms("2025-12-4 15:00:00")) 
-  )
 
-test_result <- ymd_hms("2025-12-4 15:05:00") < (ymd_hms("2025-12-4 15:00:00")
+summary(test)
+
+interpret(test) 
+
+
+
+#'Interpret
+#'
+#'Will interpret the results of the DiD analyis
+#'
+#'@param reg_out The regression output
+#'@param trade_type If the transaction was a "Buy", "Sale", "Proposed Sale"
+
+
 
 #' Will run 
 loop_dif_thresholds
