@@ -1,9 +1,13 @@
 ####### File to manage user interaction with the insider trading data and selecting
 # the functions and parameters to run
+library(dplyr)
+library(tidyverse)
+library(lubridate)
 
 #source("insider_trading_data.R")
 source("stock_price_data.R")
 
+testing_data <- read.csv("data/insider_data/test_date.csv")
 
 #' Function to ask user to pick the event they want vs whole data to do a DiD of
 #'  
@@ -94,13 +98,54 @@ new_triple_did <- function(df_clean, trade_event, threshold, trade_type){
 }
 
 
-new_single_did <- function(df_clean, trade_event, threshold, trade_type{
+new_single_did <- function(df, 
+                           trade_event, 
+                           threshold, 
+                           trade_type,
+                           target_ticker,
+                           outcome_var = "avg_price_high_low"){
   
   #Remove data before and after threshold
+  df <- df %>%
+    mutate(date = ymd_hms(date)) %>% 
+    filter(date > ymd_hms(trade_event) - minutes(threshold) &
+           date < ymd_hms(trade_event) + minutes(threshold)
+           )
+
+  #Create treated and post indicators
+  df <- df %>%
+    mutate(post = ifelse(date >= ymd_hms(trade_event),1,0),
+           treated = ifelse(ticker == target_ticker,1,0)
+           )
+  
+  #Picking the outcome of interest
+  df <- df %>% 
+    mutate(outcome = case_when(outcome_var == "avg_price_high_low" ~ ((high + low)/2),
+                               outcome_var == "avg_price_open_close" ~((open + close)/2),
+                               outcome_var == "volume" ~ (volume),
+                               outcome_var == "value" ~ (volume * ((open + close)/2)))
+          ) %>% 
+    select(ticker, date, outcome, post, treated)
   
   
-  reg <- 
-})
+  
+  # reg <- lm()
+}
+  
+### testing new_single_did
+df_clean <-  testing_data
+
+df_test <- new_single_did(df_clean, "2025-12-4 15:00:00",
+                          5,
+                          "Buy",
+                          "AAPL",
+                          "avg_price_high_low")
+  
+df_test <- df_test %>%
+  filter(date < (ymd_hms("2025-12-4 15:00:00")) 
+  )
+
+test_result <- ymd_hms("2025-12-4 15:05:00") < (ymd_hms("2025-12-4 15:00:00")
 
 #' Will run 
 loop_dif_thresholds
@@ -112,14 +157,15 @@ loop_through_dif
 #'Graphing DiD
 #'
 
-#'Time to Market Responce
+#'Time to Market Response
 #'
 #'Estimates how quickly the market responds to an insider trading report being
 #'released
 #'
 #'@param trade_event The time of the trading event
 
-
+#' Graping Market Responce
+#' 
 
 
 old_triple_did <- function(start_date, end_date = NULL, time, ticker = NULL, ){
