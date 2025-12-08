@@ -171,9 +171,6 @@ get_stock_info <- function(df) {
 
 # df_all_info <- get_stock_info(df)
 
-
-
-
 ############## SELECT YOUR ANALYSIS #############
 
 #' Picking a stock to analyze 
@@ -447,6 +444,9 @@ intra_day_data <- function(final_output){
   return(list(all_stock_data = as.data.frame(all_stock_data), user_stock = user_stock_all))
   
 }
+
+saveRDS(intra_day_data, file = "intra_day_data.rds")
+
 
 # # Sign up for API
 # riingo_browse_signup()
