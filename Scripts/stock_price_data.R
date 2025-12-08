@@ -328,12 +328,14 @@ select_your_analysis <- function(df, num_stocks = 10){
   stock. Some of them have themes that overlap with the sector and industry of your 
   stock. You will use the internet to find an ETF for the sector and industry of 
   your stock. For example, you can search up 'technology ETFs.' Use your best 
-  judgement, and type the ticker of your selected ETFs below."
+  judgement, and type the ticker of your selected ETFs below (capitalize all letters)."
   
   cat(strwrap(text, width = 80), collapse = "\n")
   
   # sector ETF and checking for safety
   sector_etf <- readline(prompt = paste0("Find an ETF for the ", df$sector, " sector: "))
+  
+  sector_etf <- toupper(sector_etf)
   
   while (is.na(is_supported_ticker(sector_etf)) || 
          !is_supported_ticker(sector_etf)) {
@@ -341,13 +343,16 @@ select_your_analysis <- function(df, num_stocks = 10){
     cat("That ETF is not available for use. Please try again.")
     
     sector_etf <- readline(
-      prompt = paste0("Find an ETF for the ", df$sector, " sector: ")
-    )
+      prompt = paste0("Find an ETF for the ", df$sector, " sector: "))
+    
+    sector_etf <- toupper(sector_etf)
   }
   
   # industry ETF and safety check 
   industry_etf <- readline(prompt = paste0("Find an ETF for the ", df$industry,
                                            " industry: "))
+  
+  industry_etf <- toupper(industry_etf)
   
   while (is.na(is_supported_ticker(industry_etf)) || 
          !is_supported_ticker(industry_etf)) {
@@ -355,8 +360,9 @@ select_your_analysis <- function(df, num_stocks = 10){
     cat("That ETF is not available for use. Please try again.")
     
     industry_etf <- readline(
-      prompt = paste0("Find an ETF for the ", df$industry, " industry: ")
-    )
+      prompt = paste0("Find an ETF for the ", df$industry, " industry: "))
+    
+    industry_etf <- toupper(industry_etf)
   }
   
   final_output <- list(
