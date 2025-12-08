@@ -23,6 +23,7 @@ interpret <- function(sum_reg, trade_type, outcome_var){
   
   print(paste0("Your outcome variable is: ", outcome_var))
   print(paste0("The DiD estimator is ", round(coeff[4],3), " with a p value of ", round(pvalues[4],3)))
+  print(paste0("This means the effect of the insider trading report being release was ", round(coeff[4],3)))
   if(!(outcome_var %in% c("volume","value"))){
   print(paste0("The trade type was a ",trade_type," so you would anticipate a ", direction,"."))
   } else {
@@ -81,7 +82,10 @@ new_single_did <- function(df,
   sum_reg <-  summary(reg)
 
   #Calling interpret function
+  print("##### Regression Output ####")
+  print(sum_reg)
   
+  print("#### Auto Interpretation ####")
   interpret(sum_reg, trade_type, outcome_var)
 
   #Returning the dataset used in the analyis
@@ -137,15 +141,18 @@ new_user_interaction_did <- function(intra_day_list = NULL){
   } else {
     df_full <- testing_data
     user_stock <- "ACT"
-    user_ETF <- "IFY"
+    user_ETF <- "IYF"
+    user_event <- "2025-12-01 12:00:00"
+    user_type <- "Sale"
   }
   
-   cat("Welcome to the Analysis portion of this code. You only need to make a few more selections.
-Please chose the type of output you want to measure, there are 4 options
-   1. avg_price_high_low: this makes the outcome variable for each minute equal to average between the high price in each minute and the low price in each minute.
-   2. avg_price_open_close: this makes the outcome varaible equal to the average between the price of the stock at the beginning of that minute compared to the end of that minute.
-   3. volume: this sets that outcome variable equal to the volume of stocks traded in that minute.
-   4. value: this sets the outcome variable equal to the volume multiplied by the avg_price_high_low")
+   cat("👋 Welcome to the Analysis portion of this code. You only need to make a few more selections.
+
+Please chose the type of outcome you want to measure, there are 4 options
+   1. avg_price_high_low: The average between the high price in each minute and the low price in each minute.
+   2. avg_price_open_close: The average between the price of the stock at the beginning of that minute compared to the end of that minute.
+   3. volume: The volume of stocks traded in that minute.
+   4. value: The volume multiplied by the avg_price_high_low")
 
    user_outcome <-  readline("Please select options 1 through 4")
 
@@ -155,9 +162,7 @@ Please chose the type of output you want to measure, there are 4 options
 
    user_outcome <- as.integer(user_outcome)
 
-   cat("Great Choice. 🥳
-
-The Analysis will now begin 🛫")
+   cat("Great Choice. 🥳")
 
 
      #Creating the two datasets for the two seperate differnece in differences
@@ -170,7 +175,7 @@ The Analysis will now begin 🛫")
                 ticker != user_ETF)
 
      #Getting the user threshold
-     user_thresh <-  readline("😧 Oops, please type in your minutes thersh hold.
+     user_thresh <-  readline("One more selection, please type in your minutes thersh hold.
 😠 If you enter a non integer, the default will be 5 minutes
 🪰 There is a known bug if you pick a thershhold that is larger than the data, so don't do that, please")
      attempted_thresh <- as.integer(user_thresh)
@@ -178,10 +183,13 @@ The Analysis will now begin 🛫")
      if(is.na(attempted_thresh)){
        attempted_thresh <- 5L
      }
-
+     cat("🛫 The Analysis will now begin 🛫
+First stop: using the Sector ETF as the control group
+")
      cat("*********************
 Sector/ETF Analysis
-*********************")
+*********************
+")
      did_data <- new_single_did(df_sector,
                     user_event,
                     attempted_thresh,
@@ -191,13 +199,16 @@ Sector/ETF Analysis
      graph_choice <- readline("📊 Press 1 to see the DiD Graph")
 
      if(graph_choice == "1"){
-        g1 <- graph_did(did_data)
+        g1 <- graph_did(did_data,user_event)
         print(g1)
      }
+     
+     graph_choice <- readline("⚙️ Press Enter to use the industry ETF as the control now")
 
      cat("*********************
 Industry Analysis
-*********************")
+*********************
+")
      did_data <- new_single_did(df_industry,
                     user_event,
                     attempted_thresh,
@@ -206,7 +217,7 @@ Industry Analysis
                     user_outcome)
      graph_choice <- readline("📊 Press 1 to see the DiD Graph")
      if(graph_choice == "1"){
-       g1 <- graph_did(did_data)
+       g1 <- graph_did(did_data,user_event)
        print(g1)
      }
 
@@ -259,3 +270,4 @@ g1 <- graph_did(df_did = test_out_data,
 print(g1)
 
 # Testing new user interaction
+new_user_interaction_did()
