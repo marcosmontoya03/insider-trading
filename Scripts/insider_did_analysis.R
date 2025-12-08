@@ -13,8 +13,10 @@ library(lubridate)
 #'
 #'@desription Will interpret the results of the DiD analysis and print out a message
 #'
-#'@param reg_out The regression output
+#'@param sum_reg The regression output
 #'@param trade_type If the transaction was a "Buy", "Sale", "Proposed Sale"
+#'@param outcome_var The user selected outcome variable
+#'
 interpret <- function(sum_reg, trade_type, outcome_var){
 
   direction <- ifelse(trade_type == "Buy","increase","decrease")
@@ -35,7 +37,15 @@ interpret <- function(sum_reg, trade_type, outcome_var){
 
 #' New Single DiD
 #'
-#' A DiD analysis
+#' @description A DiD analysis that adds indicators to the data and runs a simple DiD model
+#' 
+#' @param df A cleaned dataframe with only two tickers (treated and control)
+#' @param trade_event The date and time the insider trade was released
+#' @param threshold The user selected time to include for before and after the
+#'  insider trading occured
+#' @param trade_type The type of trade: Buy, Sale, Proposed Sale
+#' @param target_ticker The ticker of the treated stock
+#' @param outcome_var The outcome variable selected by the user, in number form, 1 through 4
 #'
 #' @return The dataframe used from the analysis
 new_single_did <- function(df,
@@ -94,8 +104,14 @@ new_single_did <- function(df,
 
 
 #' Graph DiD
+#' 
+#' @description A function to graph the treated and control data side by side with
+#' a vertical line for the time of the insider trading event
+#' 
+#' @param df_did The cleaned data from the single_did function, including the indicators
+#' @param trade_event The time of the insider trading event
 #'
-#' Makes a nice graph for the insider trading even studied
+#' @return The ggplot graph
 graph_did <- function(df_did, trade_event){
 
   trade_event <- as.POSIXct(trade_event, tz = "UTC")
@@ -118,7 +134,7 @@ graph_did <- function(df_did, trade_event){
 
 #'New User Interaction DiD
 #'
-#'Updated code to walk the user through the DiD functions and making selections
+#' @description Updated code to walk the user through the DiD functions and making selections
 #'on their outcome of choice and whether to display graphs
 #'
 #'@param intra_day_list The list returned from our intra_day_data function
@@ -135,9 +151,9 @@ new_user_interaction_did <- function(intra_day_list = NULL){
   if(!is.null(intra_day_list)){
   df_full <- intra_day_list[[1]]
   user_stock <- intra_day_list[[2]]$ticker
-  user_ETF <-
-  user_event <-
-  user_type <- intra_day_list[[2]]$type
+  user_ETF <- intra_day_list[[3]]
+  user_event <- intra_day_list[[2]]$date
+  user_type <- intra_day_list[[2]]$transaction
   } else {
     df_full <- testing_data
     user_stock <- "ACT"
@@ -271,3 +287,8 @@ print(g1)
 
 # Testing new user interaction
 new_user_interaction_did()
+
+
+#Running the code for real with Marcos's data
+other_script_output <- readRDS("data/insider_data/intra_day_data.rds")
+

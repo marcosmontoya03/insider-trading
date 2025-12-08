@@ -447,7 +447,7 @@ intra_day_data <- function(final_output){
   
   
   
-  return(list(all_stock_data = as.data.frame(all_stock_data), user_stock = user_stock_all))
+  return(list(all_stock_data = as.data.frame(all_stock_data), user_stock = user_stock_all, sector = sector_etf))
   
 }
 
