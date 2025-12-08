@@ -7,7 +7,7 @@ library(lubridate)
 #source("insider_trading_data.R")
 source("stock_price_data.R")
 
-testing_data <- read.csv("data/insider_data/test_date.csv")
+testing_data <- read.csv("data/insider_data/test_data.csv")
 
 #' Function to ask user to pick the event they want vs whole data to do a DiD of
 #'  
@@ -21,7 +21,7 @@ user_interaction <- function(){
   if(specific_event == 1){
     
     selection <- event_selection(single = TRUE,
-                                 ticker = #user input)
+                                 ticker = )#user input)
   }
   else{
     #Code to prompt user
@@ -132,9 +132,112 @@ new_triple_did <- function(df,
   sum_reg <-  summary(reg)
   return(sum_reg)
 }
+#'New User Interaction DiD
+#'
+#'Updated code to walk the user through the DiD functions and making selections
+#'on their outcome of choice, and which groups to compare to
+new_user_interaction_did <- function(intra_day_list = NULL){
+  df_full <- intra_day_list[[1]]
+  user_stock <- intra_day_list[[2]]$ticker
+  user_ETF <- 
+  user_event <- 
+  user_type <- intra_day_list[[2]]$type
+  
+   cat("Welcome to the Analysis portion of this code. You only need to make a few more selections. 
+Please chose the type of output you want to measure, there are 4 options
+   1. avg_price_high_low: this makes the outcome variable for each minute equal to average between the high price in each minute and the low price in each minute.
+   2. avg_price_open_close: this makes the outcome varaible equal to the average between the price of the stock at the beginning of that minute compared to the end of that minute. 
+   3. volume: this sets that outcome variable equal to the volume of stocks traded in that minute. 
+   4. value: this sets the outcome variable equal to the volume multiplied by the avg_price_high_low")
+  
+   user_outcome <-  readline("Please select options 1 through 4")
+   
+   while(!(user_outcome %in% c("1","2","3","4"))){
+     user_outcome <-  readline("Please select options 1 through 4")
+   }
+   
+   user_outcome <- as.integer(user_outcome)
+  
+   cat("Great Choice.
+   
+Do you want a DiD analysis and graphs, or an analysis of the speed of market adjustment to insider trading?
+       
+Type 1 for DiD analyis, and 2 for Speed measures")
+   
+   user_analysis <-  readline("Please select 1 or 2")
+   
+   while(!(user_analysis %in% c("1","2"))){
+     user_analysis <-  readline("Please select 1 or 2")
+   }
+   
+   user_analysis <- as.integer(user_analysis)
+   
+   if(user_analysis == 1){
+     
+     #Creating the two datasets for the two seperate differnece in differences
+     df_sector <- df_full %>% 
+       filter(ticker == user_stock | 
+                ticker == user_ETF)
+     
+     df_industry <- df_full %>% 
+       filter(ticker == user_stock |
+                ticker != user_ETF)
+     
+     user_thresh <-  readline("Type in your minutes thersh hold. If you enter a 
+                  non integer, the default will be 5 minutes")
+     attempted_thresh <- as.integer(user_thresh)
+     
+     if(is.na(attempted_thresh)){
+       attempted_thresh <- 5L
+     } 
+     
+     cat("*********************
+Sector/ETF Analysis
+*********************")
+     did_data <- new_single_did(df_sector,
+                    user_event,
+                    attempted_thresh, 
+                    user_type, 
+                    user_stock, 
+                    user_analysis)
+     readline("Press enter to see the DiD Graph")
+     graph_did(did_data)
+     
+     
+     cat("*********************
+Industry Analysis
+*********************")
+     did_data <- new_single_did(df_industry,
+                    user_event,
+                    attempted_thresh, 
+                    user_type, 
+                    user_stock, 
+                    user_analysis)
+     readline("Press enter to see the DiD Graph")
+     graph_did(did_data)
+     
+   }
+   else{
+     #Implementing Speed or trying different thresholds
+     
+   }
+   
+   
+   
+}
 
-#' A proof of concept on a regular DiD that will be used as the skeleton for the 
-#' triple DiD
+#' Graph DiD
+#' 
+#' Makes a nice graph for the insider trading even studied
+graph_did <- function(df_did){
+  
+}
+
+#' New Single DiD
+#' 
+#' A DiD analysis 
+#' 
+#' @return The dataframe used from the analysis
 new_single_did <- function(df, 
                            trade_event, 
                            threshold, 
@@ -167,7 +270,8 @@ new_single_did <- function(df,
   #Running the regression
   reg <- lm(outcome ~ post + treated + post:treated, data = df)
   sum_reg <-  summary(reg)
-  return(sum_reg)
+  interpret(sum_reg, trade_type)
+  return(df)
 }
   
 ################ Running Code ##################
@@ -197,17 +301,20 @@ test <- new_single_did(df_clean, "2025-12-4 15:00:00",
 sum_test <- summary(test)
 interpret(test,"Buy") 
 
-test_3 <- new_triple_did(df_clean_3,
-                         "2025-12-4 15:00:00",
-                         5,
+test_3 <- new_triple_did(df_clean,
+                         "2025-12-01 12:00:00",
+                         120,
                          "Buy",
-                         "AAPL",
-                         "ETF",
+                         "ACT",
+                         "IYF",
                          "avg_price_high_low")
 
-test_coeff <-  test_3$coefficients
+test_3$coefficients
+
+test_coeff
 
 test_3
+
 
 
 #'Interpret
