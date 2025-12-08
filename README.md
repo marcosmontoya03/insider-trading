@@ -1,29 +1,21 @@
-# insider-trading
+# What is the impact of insider trading on a stock's price?
 
-Final Project PHP 1560
-
-Gavin, Marcos
-
-# Purpose
-
-The purpose of this code is to measure the impact of insider trading on stock
-prices, as well as calculate the time 
+Created by Marcos Montoya Andrade and Gavin Schilling 
 
 
-# Structure of Files
+### Purpose
 
-The first file is load_insider_data.R
 
-The second file is load_stock_data.R
 
-The third file is triple_DiD.R
+### Files 
 
-The fourth file is user_input.R
+`insider_trading_data.R`
+
+
+
+### Functions 
 
 
 
 
-Google Dataset Search
-Dataverse
-UCI Dataset
-Kaggle (poor quality control)
+### How to use 
