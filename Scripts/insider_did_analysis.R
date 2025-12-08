@@ -120,12 +120,26 @@ graph_did <- function(df_did, trade_event){
 #'@param intra_day_list The list returned from our intra_day_data function
 #'
 new_user_interaction_did <- function(intra_day_list = NULL){
+  
+  
+  ######### Marcos Saved an RDS file to give me the correct list, so extract this
+  ### and find how to format it
+  
+  ##### Then test the function to make sure everything is working 
+  
+  
+  if(!is.null(intra_day_list)){
   df_full <- intra_day_list[[1]]
   user_stock <- intra_day_list[[2]]$ticker
   user_ETF <-
   user_event <-
   user_type <- intra_day_list[[2]]$type
-
+  } else {
+    df_full <- testing_data
+    user_stock <- "ACT"
+    user_ETF <- "IFY"
+  }
+  
    cat("Welcome to the Analysis portion of this code. You only need to make a few more selections.
 Please chose the type of output you want to measure, there are 4 options
    1. avg_price_high_low: this makes the outcome variable for each minute equal to average between the high price in each minute and the low price in each minute.
@@ -157,7 +171,8 @@ The Analysis will now begin 🛫")
 
      #Getting the user threshold
      user_thresh <-  readline("😧 Oops, please type in your minutes thersh hold.
-If you enter a non integer 😠, the default will be 5 minutes")
+😠 If you enter a non integer, the default will be 5 minutes
+🪰 There is a known bug if you pick a thershhold that is larger than the data, so don't do that, please")
      attempted_thresh <- as.integer(user_thresh)
 
      if(is.na(attempted_thresh)){
@@ -222,10 +237,14 @@ df_industry <- testing_data %>%
 #Testing new_single did
 test_out_data <- new_single_did(df_sector,
                "2025-12-01 12:00:00",
-               160,
+               40,
                "Buy",
                "ACT",
                outcome_var = 1)
+
+g1 <- graph_did(df_did = test_out_data,
+                trade_event = "2025-12-01 12:00:00")
+print(g1)
 
 test_out_data <- new_single_did(df_industry,
                                 "2025-12-01 12:00:00",
@@ -233,7 +252,10 @@ test_out_data <- new_single_did(df_industry,
                                 "Buy",
                                 "ACT",
                                 outcome_var = 1)
+
+# Testing graphing
 g1 <- graph_did(df_did = test_out_data,
                 trade_event = "2025-12-01 12:00:00")
 print(g1)
 
+# Testing new user interaction
