@@ -92,8 +92,23 @@ new_single_did <- function(df,
 #' Graph DiD
 #'
 #' Makes a nice graph for the insider trading even studied
-graph_did <- function(df_did){
+graph_did <- function(df_did, trade_event){
 
+  trade_event <- as.POSIXct(trade_event, tz = "UTC")
+  print(trade_event)
+  
+  df_did <- df_did %>% 
+    arrange(ticker, date)
+  
+  g1 <- ggplot(data = df_did, aes(x = date, y = outcome, color = ticker, group = ticker)) +
+    geom_line() +
+    scale_x_datetime(date_labels = "%H:%M") +
+    facet_wrap(facets = vars(ticker), scales = "free_y") +
+    geom_vline(xintercept = trade_event,
+               linetype = "longdash")
+    
+
+  return(g1)
 }
 
 
@@ -161,7 +176,8 @@ Sector/ETF Analysis
      graph_choice <- readline("📊 Press 1 to see the DiD Graph")
 
      if(graph_choice == "1"){
-        graph_did(did_data)
+        g1 <- graph_did(did_data)
+        print(g1)
      }
 
      cat("*********************
@@ -175,7 +191,8 @@ Industry Analysis
                     user_outcome)
      graph_choice <- readline("📊 Press 1 to see the DiD Graph")
      if(graph_choice == "1"){
-       graph_did(did_data)
+       g1 <- graph_did(did_data)
+       print(g1)
      }
 
      cat("🥳 Thank you for using our code, that is all for now.
@@ -212,10 +229,11 @@ test_out_data <- new_single_did(df_sector,
 
 test_out_data <- new_single_did(df_industry,
                                 "2025-12-01 12:00:00",
-                                160,
+                                5,
                                 "Buy",
                                 "ACT",
-                                outcome_var = 3)
-
-
+                                outcome_var = 1)
+g1 <- graph_did(df_did = test_out_data,
+                trade_event = "2025-12-01 12:00:00")
+print(g1)
 
