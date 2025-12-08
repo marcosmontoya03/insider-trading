@@ -25,7 +25,7 @@ clean_insider_data <- function(df){
   
   threshold <- (as.numeric(readline(prompt = "Enter the time threshold in minutes: "))*60) 
   
-  # Initial Cleaning
+  # initial cleaning
   df <- df %>%
     mutate(across(c(cost_share, number_shares, total_value), 
                   ~as.numeric(as.character(gsub(",", "", .)))),
@@ -42,7 +42,7 @@ clean_insider_data <- function(df){
     mutate(tot_event_same_time = n()) %>% 
     ungroup()
   
-  # Case 1: total_events_in_day == tot_event_same_time
+  # case 1: total_events_in_day == tot_event_same_time
   same <- df %>% 
     filter(total_events_in_day == tot_event_same_time) %>% 
     group_by(ticker, datetime) %>% 
@@ -56,7 +56,7 @@ clean_insider_data <- function(df){
            datetime, date, time) %>% 
     ungroup()
   
-  # Case 2: Events close in time 
+  # case 2: events close in time 
   close <- df %>%
     filter(total_events_in_day != tot_event_same_time) %>% 
     group_by(ticker, date) %>% 
@@ -75,7 +75,7 @@ clean_insider_data <- function(df){
            datetime, date, time) %>% 
     ungroup()
   
-  # Bind all 
+  # bind all 
   df_final <- bind_rows(same, close) %>% 
     distinct(ticker, datetime, .keep_all = T)
   
@@ -148,7 +148,7 @@ get_stock_info <- function(df) {
 
 # df <- get_stock_info(df)
 
-############## SELECT YOUR FUN #############
+############## SELECT YOUR ANALYSIS #############
 
 
 select_your_analysis <- function(df, num_stocks = 5){
@@ -277,80 +277,70 @@ select_your_analysis <- function(df, num_stocks = 5){
   }
   
   
+  ############ ETF part #############
+  df <- ticker_rows
   
-  return(ticker_rows)
-  
-}
-
-
-final_user_selection <- select_your_analysis(df)
-
-
-# select_your_analysis <- function(df){
-  
-  
-  
-  steps 
-  -what tyep of transaction (buy, sell, proposed)
-  - by what metric do you want to select your stock (cost, total shares, total value)
-  -once selected, we displya top stocks and ask you to pick the final stock 
-  -for final stock, we will scrape indsutry and sector 
-  -we will ask you to pick the ETFs 
-  -great, now save your data set 
-  
-  -last functoin that marcost has to write: minnute by minute 
-  -sign up for your token here 
-  
-  text <- "We are limited to analyzing insider trading on one stock at a time.
-  As such, you will select which Sector and Industry you want to explore. After,
-  you will selected one specific stock to conduct the final analysis."
-  
-  cat(paste(strwrap(text, width = 80), collapse = "\n"))
-  
-  
-  readline(prompt = "Type Next: ")
-  
-  text <- "First, let's select a broad industry. Choose from the option below."
-  
-  industry <- df %>% 
-    select(industry) %>% 
-    distinct() %>% 
-    pull()
-  
-  return(industry)
-
-  }
-
-
-
-############## GETTING ETFs #############
-
-choose_etfs <- function(final_user_selection){
-  
-  df <- final_user_selection
-  
+  # overview of stock selected 
   text <- paste0("You selected ", df$ticker, ", which is in the ", df$sector, 
                  " sector and the ", df$industry, " industry."  )
   
   cat(strwrap(text, width = 80), collapse = "\n")
   
-  readline(prompt = "Type next: ")
+  readline(prompt = "Press enter")
   
+  # getting user to search for ETFs 
+  text <- "In this analysis, we are using exchage-traded-funds (ETFs) as our 
+  control groups.ETFs are baskets of stocks that can be traded like any individual 
+  stock. Some of them have themes that overlap with the sector and industry of your 
+  stock. You will use the internet to find an ETF for the sector and industry of 
+  your stock. For example, you can search up 'technology ETFs.' Use your best 
+  judgement, and type the ticker of your selected ETFs below."
   
+  cat(strwrap(text, width = 80), collapse = "\n")
   
+  # sector ETF and checking for safety
+  sector_etf <- readline(prompt = paste0("Find an ETF for the ", df$sector, " sector: "))
   
+  while (is.na(is_supported_ticker(sector_etf)) || 
+         !is_supported_ticker(sector_etf)) {
+    
+    cat("That ETF is not available for use. Please try again.")
+    
+    sector_etf <- readline(
+      prompt = paste0("Find an ETF for the ", df$sector, " sector: ")
+    )
+  }
   
+  # industry ETF and safety check 
+  industry_etf <- readline(prompt = paste0("Find an ETF for the ", df$industry,
+                                           " industry: "))
   
+  while (is.na(is_supported_ticker(industry_etf)) || 
+         !is_supported_ticker(industry_etf)) {
+    
+    cat("That ETF is not available for use. Please try again.")
+    
+    industry_etf <- readline(
+      prompt = paste0("Find an ETF for the ", df$industry, " industry: ")
+    )
+  }
   
-  return(tdb)
+  final_output <- list(
+    stock_selection  = ticker_rows,
+    sector_etf   = sector_etf,
+    industry_etf = industry_etf
+  )
+  
+  # FINAL OUTPUT!
+  return(final_output)
+  
 }
 
 
-choose_etfs(final_user_selection)
+final_output <- select_your_analysis(df)
 
 
-
-########### test. ##########
+############## INTRA DAY DATA FUNCTION #############
 
 # # Sign up for API
 # riingo_browse_signup()
@@ -358,11 +348,63 @@ choose_etfs(final_user_selection)
 # # Save your API token as RIINGO_TOKEN = token_here (no ""), and restart R
 # usethis::edit_r_environ()
 
+intra_day_data <- function(final_output){
+  
+  # extracting from list 
+  user_stock_all <- final_output[[1]] 
+  
+  user_stock <- user_stock_all$ticker
+  
+  date_trade <- as.Date(user_stock_all$date)
+  
+  sector_etf <- final_output[[2]]
+  
+  industry_etf <- final_output[[3]]
+  
+  
+  # info about riingo and Tiingo API 
+  link <- "https://business-science.github.io/riingo/index.html"
+  text <- paste0("To access intrastock data, we used the Tiingo API. 
+  To learn more about this API's R documentation, please visit: ", link)
+  
+  cat(strwrap(text, width = 80), collapse = "\n")
+  
+  readline(prompt = "Press enter")
+  
+  # stock data 
+  stock_data <- riingo_iex_prices(user_stock, 
+                                  resample_frequency = "1min",
+                                  start_date = date_trade,
+                                  end_date = date_trade)
+  
+  stock_data$date <- with_tz(stock_data$date, "America/New_York")
+  
+  # sector data 
+  sector_data <- riingo_iex_prices(sector_etf, 
+                                  resample_frequency = "1min",
+                                  start_date = date_trade,
+                                  end_date = date_trade) 
+  sector_data$date <- with_tz(sector_data$date, "America/New_York")
+  
+  # industry data 
+  industry_data <- riingo_iex_prices(industry_etf, 
+                                   resample_frequency = "1min",
+                                   start_date = date_trade,
+                                   end_date = date_trade) 
+  industry_data$date <- with_tz(industry_data$date, "America/New_York")
+  
+  # final dataset 
+  all_stock_data <-  bind_rows(stock_data, sector_data, industry_data)
+  
+  final_data <- list(all_stock_data = all_stock_data, user_stock = user_stock_all)
+  
+  
+  return(final_data)
+  
+}
 
-# check if supported 
-is_supported_ticker("CZFS")
 
-
+intra_day_data(final_user_selection)
 
 try <- df %>% 
   filter(ticker == "CZFS") %>% 
@@ -384,42 +426,6 @@ test <- riingo_iex_prices("CZFS", resample_frequency = "1min",
 
 write.csv(test, "test_date.csv")
 
-
-
-############ test 
-
-link <- "https://etfdb.com/etfs/industry/"
-
-# 1. Read the main industry‑list page, extract all industry links
-industry_page <- read_html(link)
-
-industry_links <- industry_page %>% 
-  html_nodes("a") %>%         # this finds all <a> tags
-  html_attr("href") %>%       # get their hrefs
-  .[grepl("^/etfs/industry/", .)] %>%  # keep only those linking to industry pages
-  unique() %>% 
-  paste0("https://etfdb.com", .)  # make full URLs
-
-# 2. Loop over industry links, for each scrape the top 3 stocks
-results <- lapply(industry_links, function(url) {
-  page <- read_html(url)
-  
-  # select the first 3 stocks under whatever CSS class is used — e.g. 
-  # if “.realtime-ratings a” is what you identified
-  stocks <- page %>% 
-    html_nodes(".realtime-ratings a") %>% 
-    html_text() %>% 
-    head(3)
-  
-  data.frame(
-    industry_url = url,
-    top_stock = stocks,
-    stringsAsFactors = FALSE
-  )
-})
-
-etfdb_top3 <- bind_rows(results)
-print(etfdb_top3
 
 
 
