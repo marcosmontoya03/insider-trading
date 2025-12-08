@@ -10,6 +10,16 @@ library(lubridate)
 
 ############## CLEANING FUNCTION #############
 
+#' Cleaning Insider Trading Data 
+#' 
+#' @description this function takes processed FinViz data and merges insider
+#' trading reports that are reported near each other
+#' 
+#' @param df this is the data frame created using the `get_insider_trading()` function
+#' 
+#' @return a data frame with insider trading report data; total shares bough and 
+#' total value summed for reports that were merged 
+
 clean_insider_data <- function(df){
   
   text <- "Some companies have multiple insider trading reports, and you’ll need to
@@ -83,9 +93,22 @@ clean_insider_data <- function(df){
 }
 
 
-df <- clean_insider_data(all_raw_data)
+# df <- clean_insider_data(all_raw_data)
+
+
+
 
 ############## GETTING STOCK SECTOR FUNCTION #############
+
+#' Get a stock's industry and sector information
+#' 
+#' @description this function takes processed FinViz data and scrapes each ticker's 
+#' industry and sector data from stockanalysis.com
+#' 
+#' @param df this is the data frame created using the `clean_insider_data()` function
+#' 
+#' @return an amended data frame with 2 additional columns containing the stocks' 
+#' industry and sector  
 
 get_stock_info <- function(df) {
   
@@ -146,12 +169,26 @@ get_stock_info <- function(df) {
   return(all_info)
 }
 
-# df <- get_stock_info(df)
+# df_all_info <- get_stock_info(df)
+
+
+
 
 ############## SELECT YOUR ANALYSIS #############
 
+#' Picking a stock to analyze 
+#' 
+#' @description this function guides a user through several decisions (type of 
+#' transaction, metric for sorting, stock selection, date of event) with  the goal 
+#' of picking a singular stock to analyze
+#' 
+#' @param df this is the data frame created using the `clean_insider_data()` function
+#' @param num_stocks the number of stocks you want to compare before choosing one
+#' 
+#' @return a list with 1) data frame with the information of only one insider 
+#' trading event, 2) chosen sector ETF, and 3) choser industry ETF 
 
-select_your_analysis <- function(df, num_stocks = 5){
+select_your_analysis <- function(df, num_stocks = 10){
   
   # transaction choice 
   transactions <- unique(df$transaction)
@@ -200,7 +237,7 @@ select_your_analysis <- function(df, num_stocks = 5){
     distinct(ticker) %>% 
     pull(ticker) 
   
-  # while loop to only get top stocks (based on num_stocks, default = 5)
+  # while loop to only get top stocks (based on num_stocks, default = 10)
   n <- num_stocks
   step <- num_stocks
   valid_tickers <- character(0)
@@ -326,7 +363,7 @@ select_your_analysis <- function(df, num_stocks = 5){
   }
   
   final_output <- list(
-    stock_selection  = ticker_rows,
+    stock_selection  = as.data.frame(ticker_rows),
     sector_etf   = sector_etf,
     industry_etf = industry_etf
   )
@@ -337,29 +374,38 @@ select_your_analysis <- function(df, num_stocks = 5){
 }
 
 
-final_output <- select_your_analysis(df)
+# final_output <- select_your_analysis(df)
 
 
 ############## INTRA DAY DATA FUNCTION #############
 
-# # Sign up for API
-# riingo_browse_signup()
-# 
-# # Save your API token as RIINGO_TOKEN = token_here (no ""), and restart R
-# usethis::edit_r_environ()
+
+#' Get minute-by-minute intraday stock information 
+#' 
+#' @description this function guides a user through selecting ETFs as control groups 
+#' and collected intraday stock data for both ETFs and the stock of choice at the 
+#' minute level
+#' 
+#' @param final_ouput this is the data frame created using `select_your_analysis()`
+#' function 
+#' 
+#' @return a list containing 1) a data frame containing all intraday stock data for 
+#' all three stocks (2 ETFs and 1 stock of choice), and 2) the stock's insider 
+#' trading report (capture through the `select_your_analysis()` function)
+
 
 intra_day_data <- function(final_output){
   
   # extracting from list 
-  user_stock_all <- final_output[[1]] 
+  user_stock_all <- final_output[[1]]
   
   user_stock <- user_stock_all$ticker
   
-  date_trade <- as.Date(user_stock_all$date)
+  date_trade <- user_stock_all$date
   
-  sector_etf <- final_output[[2]]
+  sector_etf <- as.character(final_output[[2]])
   
-  industry_etf <- final_output[[3]]
+  industry_etf <- as.character(final_output[[3]])
   
   
   # info about riingo and Tiingo API 
@@ -394,37 +440,22 @@ intra_day_data <- function(final_output){
   industry_data$date <- with_tz(industry_data$date, "America/New_York")
   
   # final dataset 
-  all_stock_data <-  bind_rows(stock_data, sector_data, industry_data)
-  
-  final_data <- list(all_stock_data = all_stock_data, user_stock = user_stock_all)
+  all_stock_data <- bind_rows(stock_data, sector_data, industry_data)
   
   
-  return(final_data)
+  
+  return(list(all_stock_data = as.data.frame(all_stock_data), user_stock = user_stock_all))
   
 }
 
+# # Sign up for API
+# riingo_browse_signup()
+# 
+# # Save your API token as RIINGO_TOKEN = token_here (no ""), and restart R
+# usethis::edit_r_environ()
 
-intra_day_data(final_user_selection)
+# df_analysis <- intra_day_data(final_output)
 
-try <- df %>% 
-  filter(ticker == "CZFS") %>% 
-  mutate(before = datetime - minutes(30),
-         after = datetime + minutes(30))
-
-test_2 <- riingo_iex_prices(try$ticker, resample_frequency = "1min") 
-
-test_2$date <- with_tz(test_2$date, "America/New_York")
-
-test_2 <- test_2 %>% 
-  filter(date > try$before, date < try$after)
-  
-
-
-test <- riingo_iex_prices("CZFS", resample_frequency = "1min",
-                          start_date = "2025-12-4",
-                          end_date = "2025-12-4")
-
-write.csv(test, "test_date.csv")
 
 
 
