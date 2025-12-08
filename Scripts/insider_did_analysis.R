@@ -219,7 +219,7 @@ Industry Analysis
    }
    else{
      #Implementing Speed or trying different thresholds
-     
+     #
    }
    
    
