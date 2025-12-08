@@ -11,6 +11,10 @@ Created by Marcos Montoya Andrade and Gavin Schilling
 
 `insider_trading_data.R`
 
+`stock_price_data.R` 
+
+`insider_did_analysis.R`
+
 
 
 ### Functions 
