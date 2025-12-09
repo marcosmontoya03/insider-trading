@@ -131,6 +131,8 @@ graph_did <- function(df_did, trade_event){
   df_did <- df_did %>% 
     arrange(ticker, date)
   
+  trade_event <- as.POSIXct(trade_event, tz = "EST")
+  
   #### DEBUGGING CODE
   min_date <- min(df_did$date, na.rm = TRUE)
   print(min_date)
@@ -145,9 +147,9 @@ graph_did <- function(df_did, trade_event){
   g1 <- ggplot(data = df_did, aes(x = date, y = outcome, color = ticker, group = ticker)) +
     geom_line() +
     scale_x_datetime(date_labels = "%H:%M") +
-    facet_wrap(facets = vars(ticker), scales = "free_y") #+
-    #geom_vline(xintercept = trade_event,
-              # linetype = "longdash")
+    facet_wrap(facets = vars(ticker), scales = "free_y") +
+    geom_vline(xintercept = trade_event,
+              linetype = "longdash")
     
 
   return(g1)
@@ -248,7 +250,7 @@ Sector/ETF Analysis
                     user_type,
                     user_stock,
                     user_outcome)
-     graph_choice <- readline("📊 Press 1 to see the DiD Graph")
+     graph_choice <- readline("📊 Press 1 to see the DiD Graph: ")
 
      if(graph_choice == "1"){
         g1 <- graph_did(did_data, user_event)
@@ -267,7 +269,7 @@ Industry Analysis
                     user_type,
                     user_stock,
                     user_outcome)
-     graph_choice <- readline("📊 Press 1 to see the DiD Graph")
+     graph_choice <- readline("📊 Press 1 to see the DiD Graph: ")
      if(graph_choice == "1"){
        g1 <- graph_did(did_data,user_event)
        print(g1)
