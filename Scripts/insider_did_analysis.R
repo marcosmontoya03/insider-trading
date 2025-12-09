@@ -5,7 +5,7 @@ library(tidyverse)
 library(lubridate)
 
 #source("insider_trading_data.R")
-# source("stock_price_data.R")
+#source("stock_price_data.R")
 
 ############################### FUNCTIONS ###################################
 
@@ -54,7 +54,7 @@ new_single_did <- function(df,
                            trade_type,
                            target_ticker,
                            outcome_var = 1L){
-  #Setting outcome_var equal to the coresponding string
+  #Setting outcome_var equal to the corresponding string
   if(outcome_var == 1){
     outcome_var <- "avg_price_high_low"
   } else if (outcome_var == 2){
@@ -135,17 +135,12 @@ graph_did <- function(df_did, trade_event){
 #'New User Interaction DiD
 #'
 #' @description Updated code to walk the user through the DiD functions and making selections
-#'on their outcome of choice and whether to display graphs
+#'on their outcome of choice and whether to display graphs, the user will also pick their
+#'threshold
 #'
 #'@param intra_day_list The list returned from our intra_day_data function
 #'
 new_user_interaction_did <- function(intra_day_list = NULL){
-  
-  
-  ######### Marcos Saved an RDS file to give me the correct list, so extract this
-  ### and find how to format it
-  
-  ##### Then test the function to make sure everything is working 
   
   
   if(!is.null(intra_day_list)){
