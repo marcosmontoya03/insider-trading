@@ -286,7 +286,7 @@ g1 <- graph_did(df_did = test_out_data,
 print(g1)
 
 # Testing new user interaction
-new_user_interaction_did()
+##new_user_interaction_did()
 
 
 #Running the code for real with Marcos's data
