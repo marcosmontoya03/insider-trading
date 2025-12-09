@@ -83,10 +83,12 @@ new_single_did <- function(df,
   df <- df %>%
     filter(.data$date > bottom, 
            .data$date < top)
+  
+  
 
   #Create treated and post indicators
   df <- df %>%
-    mutate(post = ifelse(date >= ymd_hms(trade_event),1,0),
+    mutate(post = ifelse(.data$date >= trade_event,1,0),
            treated = ifelse(ticker == target_ticker,1,0)
     )
 
@@ -126,30 +128,30 @@ new_single_did <- function(df,
 #' @return The ggplot graph
 graph_did <- function(df_did, trade_event){
 
-  print(trade_event)
+  time_label <- format(trade_event, "%I:%M %p")
+  print(paste0("The insider trading report happened at ", time_label))
+  
+  df_did$date <- with_tz(df_did$date, "America/New_York")
   
   df_did <- df_did %>% 
     arrange(ticker, date)
   
-  trade_event <- as.POSIXct(trade_event, tz = "EST")
+  stock <- df_did %>% filter(treated == 1) %>% pull(ticker)
+  etf <- df_did %>% filter(treated == 0) %>% pull(ticker)
   
-  #### DEBUGGING CODE
-  min_date <- min(df_did$date, na.rm = TRUE)
-  print(min_date)
-  max_date <- max(df_did$date, na.rm = TRUE)
-  print(max_date)
-  print(trade_event)
-  if (trade_event < min_date || trade_event > max_date) {
-    warning("trade_event is outside the data date range. No vline will be visible.")
-  }
-  ########
+  trade_event <- with_tz(trade_event, "America/New_York")
   
   g1 <- ggplot(data = df_did, aes(x = date, y = outcome, color = ticker, group = ticker)) +
     geom_line() +
     scale_x_datetime(date_labels = "%H:%M") +
     facet_wrap(facets = vars(ticker), scales = "free_y") +
     geom_vline(xintercept = trade_event,
-              linetype = "longdash")
+              linetype = "longdash") + 
+    labs(title = paste0("DiD Graph of stock ", stock, " and etf ", etf),
+         x = "Time (EST)",
+         y = "Price ($)") +
+    theme_minimal() +
+    theme(panel.grid.major = element_blank())
     
 
   return(g1)
