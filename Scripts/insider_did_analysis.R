@@ -131,6 +131,17 @@ graph_did <- function(df_did, trade_event){
   df_did <- df_did %>% 
     arrange(ticker, date)
   
+  #### DEBUGGING CODE
+  min_date <- min(df_did$date, na.rm = TRUE)
+  print(min_date)
+  max_date <- max(df_did$date, na.rm = TRUE)
+  print(max_date)
+  print(trade_event)
+  if (trade_event < min_date || trade_event > max_date) {
+    warning("trade_event is outside the data date range. No vline will be visible.")
+  }
+  ########
+  
   g1 <- ggplot(data = df_did, aes(x = date, y = outcome, color = ticker, group = ticker)) +
     geom_line() +
     scale_x_datetime(date_labels = "%H:%M") +
