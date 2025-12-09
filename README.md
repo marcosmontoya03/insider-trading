@@ -24,7 +24,8 @@ industry and sector ETFs to control for general trends in the market.
 `get_stock_info()`, `select_your_analysis()`, and `intra_day_data()`
 functions.
 
-`insider_did_analysis.R` TBD GAVING WILL WRITE
+`insider_did_analysis.R` contains the `interpret()`,`new_single_did()`, `graph_did()`,
+and `new_user_interaction()`
 
 ### Functions
 
@@ -47,6 +48,14 @@ selection, and control ETFs.
 `intra_day_data()` this function uses the Tiingo API to scrape
 minute-by-minute stock data for both the selected stock and ETFs on the
 date of the insider trading report.
+
+`interpret()` Interprets the regression output of `new_single_did()`
+
+`graph_did()` Makes side by side graphs of the data for the chosen interval with a 
+vertical line for when the event occurs
+
+`new_single_did()`, `graph_did()`,
+and `new_user_interaction()`
 
 ### How to use
 
@@ -78,4 +87,6 @@ date of the insider trading report.
 
     You will have your final output ready for further analysis (a list).
 
-4.  TBD GAVIN WILL WRITE
+4.  Input the list from intra_day_data() into new_user_interaction, then follow
+the prompts to run the rest of the code!! You will have to select an outcome variable
+and select a thresh hold to select the data for
