@@ -144,11 +144,11 @@ new_user_interaction_did <- function(intra_day_list = NULL){
   
   
   if(!is.null(intra_day_list)){
-  df_full <- intra_day_list[[1]]
-  user_stock <- intra_day_list[[2]]$ticker
-  user_ETF <- intra_day_list[[3]]
-  user_event <- intra_day_list[[2]]$date
-  user_type <- intra_day_list[[2]]$transaction
+    df_full <- intra_day_list$stock_selection
+    user_stock <- intra_day_list$stock_selection$ticker
+    user_ETF <- intra_day_list$sector_etf
+    user_event <- intra_day_list$stock_selection$datetime
+    user_type <- intra_day_list$stock_selection$transaction
   } else {
     df_full <- testing_data
     user_stock <- "ACT"
@@ -165,15 +165,15 @@ Please chose the type of outcome you want to measure, there are 4 options
    3. volume: The volume of stocks traded in that minute.
    4. value: The volume multiplied by the avg_price_high_low")
 
-   user_outcome <-  readline("Please select options 1 through 4")
+   user_outcome <-  readline("Please select options 1 through 4: ")
 
    while(!(user_outcome %in% c("1","2","3","4"))){
-     user_outcome <-  readline("Please select options 1 through 4")
+     user_outcome <-  readline("Please select options 1 through 4: 1")
    }
 
    user_outcome <- as.integer(user_outcome)
 
-   cat("Great Choice. 🥳")
+   cat("Great Choice 🥳")
 
 
      #Creating the two datasets for the two seperate differnece in differences
@@ -186,9 +186,26 @@ Please chose the type of outcome you want to measure, there are 4 options
                 ticker != user_ETF)
 
      #Getting the user threshold
-     user_thresh <-  readline("One more selection, please type in your minutes thersh hold.
-😠 If you enter a non integer, the default will be 5 minutes
-🪰 There is a known bug if you pick a thershhold that is larger than the data, so don't do that, please")
+     
+     readline(prompt = "Enter next")
+     
+     text <- "One more selection, please type in your minutes threshold.😠 If you 
+     enter a non integer, the default will be 5 minutes. 🪰 There is a known bug 
+     if you pick a threshold that is larger than the data, so don't do that, please."
+     
+     cat(paste(strwrap(text, width = 80), collapse = "\n"))
+     
+     readline(prompt = "Enter next")
+     
+     
+     text <- paste0("Your insider trading event happened at ", 
+                    intra_day_list$stock_selection$time," so be sure your threshold
+                    makes sense. As a reminder, the market opens at 9:30 am EST and
+                    closes at 4:30 pm EST.")
+
+     
+     user_thresh <-  readline(prompt = "Type your threshold: ")
+     
      attempted_thresh <- as.integer(user_thresh)
 
      if(is.na(attempted_thresh)){
