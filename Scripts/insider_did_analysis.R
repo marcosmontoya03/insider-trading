@@ -290,5 +290,5 @@ new_user_interaction_did()
 
 
 #Running the code for real with Marcos's data
-other_script_output <- readRDS("data/insider_data/intra_day_data.rds")
+## other_script_output <- readRDS("data/insider_data/intra_day_data.rds")
 
