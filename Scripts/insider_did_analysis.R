@@ -21,11 +21,22 @@ interpret <- function(sum_reg, trade_type, outcome_var){
 
   direction <- ifelse(trade_type == "Buy","increase","decrease")
   coeff <-  sum_reg$coefficients[,1]
+  coeff_2 <- sum_reg$coefficients["post:treated", 1]
   pvalues <-  sum_reg$coefficients[,4]
   
+  if(coeff_2 > 0){
+    direction_c <- "increased"
+  } else {
+    direction_c <- "decreased"
+  }
+  
   print(paste0("Your outcome variable is: ", outcome_var))
-  print(paste0("The DiD estimator is ", round(coeff[4],3), " with a p value of ", round(pvalues[4],3)))
-  print(paste0("This means the effect of the insider trading report being release was ", round(coeff[4],3)))
+  print(paste0("The DiD estimator is ", round(coeff[4], 3), " with a p value of ", 
+               round(pvalues[4],3)))
+  
+  print(paste0("After the insider trading report was released, the treated stock’s outcome ", 
+               direction_c, " by ", round(abs(coeff[4]), 3), " dollars more than the control group"))
+  
   if(!(outcome_var %in% c("volume","value"))){
   print(paste0("The trade type was a ",trade_type," so you would anticipate a ", direction,"."))
   } else {
@@ -64,13 +75,14 @@ new_single_did <- function(df,
   } else {
     outcome_var <- "value"
   }
+  
+  bottom <- trade_event - minutes(threshold)
+  top <- trade_event + minutes(threshold)
 
   #Remove data before and after threshold
   df <- df %>%
-    mutate(date = ymd_hms(date)) %>%
-    filter(date > ymd_hms(trade_event) - minutes(threshold) &
-             date < ymd_hms(trade_event) + minutes(threshold)
-    )
+    filter(.data$date > bottom, 
+           .data$date < top)
 
   #Create treated and post indicators
   df <- df %>%
@@ -114,7 +126,6 @@ new_single_did <- function(df,
 #' @return The ggplot graph
 graph_did <- function(df_did, trade_event){
 
-  trade_event <- as.POSIXct(trade_event, tz = "UTC")
   print(trade_event)
   
   df_did <- df_did %>% 
@@ -123,9 +134,9 @@ graph_did <- function(df_did, trade_event){
   g1 <- ggplot(data = df_did, aes(x = date, y = outcome, color = ticker, group = ticker)) +
     geom_line() +
     scale_x_datetime(date_labels = "%H:%M") +
-    facet_wrap(facets = vars(ticker), scales = "free_y") +
-    geom_vline(xintercept = trade_event,
-               linetype = "longdash")
+    facet_wrap(facets = vars(ticker), scales = "free_y") #+
+    #geom_vline(xintercept = trade_event,
+              # linetype = "longdash")
     
 
   return(g1)
@@ -144,11 +155,11 @@ new_user_interaction_did <- function(intra_day_list = NULL){
   
   
   if(!is.null(intra_day_list)){
-    df_full <- intra_day_list$stock_selection
-    user_stock <- intra_day_list$stock_selection$ticker
+    df_full <- intra_day_list$all_stock_data
+    user_stock <- intra_day_list$user_stock$ticker
     user_ETF <- intra_day_list$sector_etf
-    user_event <- intra_day_list$stock_selection$datetime
-    user_type <- intra_day_list$stock_selection$transaction
+    user_event <- intra_day_list$user_stock$datetime
+    user_type <- intra_day_list$user_stock$transaction
   } else {
     df_full <- testing_data
     user_stock <- "ACT"
@@ -191,7 +202,9 @@ Please chose the type of outcome you want to measure, there are 4 options
      
      text <- "One more selection, please type in your minutes threshold.😠 If you 
      enter a non integer, the default will be 5 minutes. 🪰 There is a known bug 
-     if you pick a threshold that is larger than the data, so don't do that, please."
+     if you pick a threshold that is larger than the data, so don't do that, please.
+     To be specific, you can only create a threshold that goes until 3:59 pm. This means
+     for a stock at 3:30, the largest threshold you can have is 29 minutes."
      
      cat(paste(strwrap(text, width = 80), collapse = "\n"))
      
@@ -199,10 +212,10 @@ Please chose the type of outcome you want to measure, there are 4 options
      
      
      text <- paste0("Your insider trading event happened at ", 
-                    intra_day_list$stock_selection$time," so be sure your threshold
-                    makes sense. As a reminder, the market opens at 9:30 am EST and
-                    closes at 4:30 pm EST.")
-
+                    intra_day_list$user_stock$time," so be sure your threshold
+                    makes sense.")
+     
+     cat(paste(strwrap(text, width = 80), collapse = "\n"))
      
      user_thresh <-  readline(prompt = "Type your threshold: ")
      
@@ -227,7 +240,7 @@ Sector/ETF Analysis
      graph_choice <- readline("📊 Press 1 to see the DiD Graph")
 
      if(graph_choice == "1"){
-        g1 <- graph_did(did_data,user_event)
+        g1 <- graph_did(did_data, user_event)
         print(g1)
      }
      

@@ -92,7 +92,6 @@ clean_insider_data <- function(df){
   return(df_final)
 }
 
-
 # df <- clean_insider_data(all_raw_data)
 
 
@@ -226,7 +225,8 @@ select_your_analysis <- function(df, num_stocks = 10){
   
   # filter based on user input
   df_sorted <- df %>% 
-    filter(transaction == user_transaction) %>% 
+    filter(transaction == user_transaction, 
+           time < hms("15:40:00")) %>% 
     arrange(desc(.data[[user_metric]])) 
   
   # getting sector and industry info for the top stocks 
@@ -377,7 +377,7 @@ select_your_analysis <- function(df, num_stocks = 10){
 }
 
 
-# final_output <- select_your_analysis(df)
+final_output <- select_your_analysis(df)
 
 
 ############## INTRA DAY DATA FUNCTION #############
@@ -447,11 +447,10 @@ intra_day_data <- function(final_output){
   
   
   
-  return(list(all_stock_data = as.data.frame(all_stock_data), user_stock = user_stock_all, sector = sector_etf))
+  return(list(all_stock_data = as.data.frame(all_stock_data), user_stock = user_stock_all,
+              sector_etf = sector_etf))
   
 }
-
-saveRDS(intra_day_data, file = "intra_day_data.rds")
 
 
 # # Sign up for API
@@ -460,7 +459,7 @@ saveRDS(intra_day_data, file = "intra_day_data.rds")
 # # Save your API token as RIINGO_TOKEN = token_here (no ""), and restart R
 # usethis::edit_r_environ()
 
-# df_analysis <- intra_day_data(final_output)
+# intra_day_list <- intra_day_data(final_output)
 
 
 
