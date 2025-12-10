@@ -226,7 +226,6 @@ Please chose the type of outcome you want to measure, there are 4 options
      
      readline(prompt = "Enter next")
      
-     
      text <- paste0("Your insider trading event happened at ", 
                     intra_day_list$user_stock$time," so be sure your threshold
                     makes sense.")
