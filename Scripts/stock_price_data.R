@@ -39,7 +39,9 @@ clean_insider_data <- function(df){
   df <- df %>%
     mutate(across(c(cost_share, number_shares, total_value), 
                   ~as.numeric(as.character(gsub(",", "", .)))),
-           datetime = as.POSIXct(datetime, format = "%b %d %I:%M %p", tz = "America/New_York")) %>% 
+           datetime = as.POSIXct(datetime, format = "%b %d %I:%M %p", tz = "America/New_York"),
+           time = hms(time),
+           date = as.Date(date)) %>% 
     group_by(ticker, date) %>% 
     mutate(total_events_in_day = n(),
            n_transactions = n_distinct(transaction)) %>% 
@@ -92,7 +94,7 @@ clean_insider_data <- function(df){
   return(df_final)
 }
 
-# df <- clean_insider_data(all_raw_data)
+df <- clean_insider_data(raw)
 
 
 
@@ -184,7 +186,7 @@ get_stock_info <- function(df) {
 #' @return a list with 1) data frame with the information of only one insider 
 #' trading event, 2) chosen sector ETF, and 3) choser industry ETF 
 
-select_your_analysis <- function(df, num_stocks = 10){
+select_your_analysis <- function(df, num_stocks = 3){
   
   # transaction choice 
   transactions <- unique(df$transaction)
@@ -377,7 +379,7 @@ select_your_analysis <- function(df, num_stocks = 10){
 }
 
 
-final_output <- select_your_analysis(df)
+final_output <- select_your_analysis(df, 10)
 
 
 ############## INTRA DAY DATA FUNCTION #############
@@ -459,7 +461,7 @@ intra_day_data <- function(final_output){
 # # Save your API token as RIINGO_TOKEN = token_here (no ""), and restart R
 # usethis::edit_r_environ()
 
-# intra_day_list <- intra_day_data(final_output)
+intra_day_list <- intra_day_data(final_output)
 
 # saveRDS(intra_day_list, "intra_day_list.rds")
 

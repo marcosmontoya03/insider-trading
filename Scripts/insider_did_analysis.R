@@ -86,7 +86,7 @@ new_single_did <- function(df,
 
   #Create treated and post indicators
   df <- df %>%
-    mutate(post = ifelse(date >= ymd_hms(trade_event),1,0),
+    mutate(post = ifelse(date >= trade_event,1,0),
            treated = ifelse(ticker == target_ticker,1,0)
     )
 
@@ -286,42 +286,42 @@ Thank you for the amazing courses this semester and last semester 🥳")
 
 
 ################ Running Code ##################
-testing_data <- read.csv("data/insider_data/test_data.csv")
-
-## Testing single DiD
-df_sector <- testing_data %>%
-  filter(ticker == "ACT" |
-           ticker == "IYF")
-
-
-
-df_industry <- testing_data %>%
-  filter(ticker == "ACT" |
-           ticker != "IYF")
-
-#Testing new_single did
-test_out_data <- new_single_did(df_sector,
-               "2025-12-01 12:00:00",
-               40,
-               "Buy",
-               "ACT",
-               outcome_var = 1)
-
-g1 <- graph_did(df_did = test_out_data,
-                trade_event = "2025-12-01 12:00:00")
-print(g1)
-
-test_out_data <- new_single_did(df_industry,
-                                "2025-12-01 12:00:00",
-                                5,
-                                "Buy",
-                                "ACT",
-                                outcome_var = 1)
-
-# Testing graphing
-g1 <- graph_did(df_did = test_out_data,
-                trade_event = "2025-12-01 12:00:00")
-print(g1)
+# testing_data <- read.csv("data/insider_data/test_data.csv")
+# 
+# ## Testing single DiD
+# df_sector <- testing_data %>%
+#   filter(ticker == "ACT" |
+#            ticker == "IYF")
+# 
+# 
+# 
+# df_industry <- testing_data %>%
+#   filter(ticker == "ACT" |
+#            ticker != "IYF")
+# 
+# #Testing new_single did
+# test_out_data <- new_single_did(df_sector,
+#                "2025-12-01 12:00:00",
+#                40,
+#                "Buy",
+#                "ACT",
+#                outcome_var = 1)
+# 
+# g1 <- graph_did(df_did = test_out_data,
+#                 trade_event = "2025-12-01 12:00:00")
+# print(g1)
+# 
+# test_out_data <- new_single_did(df_industry,
+#                                 "2025-12-01 12:00:00",
+#                                 5,
+#                                 "Buy",
+#                                 "ACT",
+#                                 outcome_var = 1)
+# 
+# # Testing graphing
+# g1 <- graph_did(df_did = test_out_data,
+#                 trade_event = "2025-12-01 12:00:00")
+# print(g1)
 
 # Testing new user interaction
 ##new_user_interaction_did()
@@ -330,3 +330,5 @@ print(g1)
 #Running the code for real with Marcos's data
 ## other_script_output <- readRDS("data/insider_data/intra_day_data.rds")
 
+
+new_user_interaction_did(intra_day_list)

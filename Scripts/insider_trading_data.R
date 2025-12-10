@@ -75,6 +75,8 @@ get_insider_trading <- function(){
   
 }
 
+raw <- get_insider_trading()
+
 ################# Scraping at 4:30 pm each day ################################
   
 # DECEMBER 1 
@@ -108,3 +110,5 @@ all_raw_data <- list.files(path = "/Users/marco/Documents/GitHub/insider-trading
 
 # 
 # write.csv(all_raw_data, "insider_trading_dec_1-5.csv", row.names = F)
+
+raw <- read.csv("data/insider_data/insider_trading_dec_1-5.csv")
